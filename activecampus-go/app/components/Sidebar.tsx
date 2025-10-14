@@ -88,6 +88,7 @@ export default function Sidebar() {
           className={`w-full text-left flex items-center gap-3 px-3 py-3 rounded-md hover:bg-gray-100 ${
             sidebarOpen ? '' : 'justify-center'
           }`}
+          onClick={() => router.push('/leaderboards')}
         >
           <Image 
             src="/icons/trophy-icon.png" 
@@ -103,6 +104,7 @@ export default function Sidebar() {
           className={`w-full text-left flex items-center gap-3 px-3 py-3 rounded-md hover:bg-gray-100 ${
             sidebarOpen ? '' : 'justify-center'
           }`}
+          onClick={() => router.push('/character_customization')}
         >
           <Image 
             src="/icons/profile-icon.png" 
