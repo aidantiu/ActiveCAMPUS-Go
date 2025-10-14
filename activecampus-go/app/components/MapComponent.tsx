@@ -920,16 +920,8 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
             </div>
           )}
         </div>
-
-        {/* Campus Energy Display - Separate Container */}
-        {userProfile && (
-          <div className="bg-white rounded-lg shadow-lg p-4 w-fit self-center">
-            <div className="text-xs text-gray-600 font-medium">Campus Energy</div>
-            <div className="text-2xl font-bold text-gray-900 whitespace-nowrap">{userProfile.campusEnergy} CE</div>
-          </div>
-        )}
       </div>
-
+        
       {/* Success Message Notification */}
       {successMessage && (
         <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-xl z-50 animate-bounce">
