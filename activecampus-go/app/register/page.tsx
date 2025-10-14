@@ -1,5 +1,5 @@
 'use client';
-
+import IntroBg from '../assets/intro_bg.svg';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -123,16 +123,10 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-indigo-600 mb-2">
-            🔥 ActiveCAMPUS GO
-          </h1>
-          <p className="text-gray-600">Join the campus fitness revolution!</p>
-        </div>
-
+    <div
+      className="h-screen w-screen bg-cover bg-center bg-no-repeat flex items-center justify-center"
+      style={{ backgroundImage: `url(${IntroBg.src})` }}>
+      <div className="bg-[#dfd2e9]/40 rounded-2xl shadow-2xl w-full max-w-md p-8">
         {/* Registration Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email Input */}
@@ -146,8 +140,8 @@ export default function RegisterPage() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                errors.email ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#c9f2bb] focus:border-transparent text-gray-800 ${
+                errors.email ? 'border-red-500' : 'border-gray-800'
               }`}
               placeholder="your.email@example.com"
               disabled={loading}
@@ -169,8 +163,8 @@ export default function RegisterPage() {
               name="username"
               value={formData.username}
               onChange={handleChange}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                errors.username ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#c9f2bb] focus:border-transparent text-gray-800 ${
+                errors.username ? 'border-red-500' : 'border-gray-800'
               }`}
               placeholder="your_username"
               disabled={loading}
@@ -193,8 +187,8 @@ export default function RegisterPage() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                  errors.password ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#c9f2bb] focus:border-transparent text-gray-800 ${
+                  errors.password ? 'border-red-500' : 'border-gray-800'
                 }`}
                 placeholder="••••••••"
                 disabled={loading}
@@ -227,8 +221,8 @@ export default function RegisterPage() {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
-                errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#c9f2bb] focus:border-transparent text-gray-800${
+                errors.confirmPassword ? 'border-red-500' : 'border-gray-800'
               }`}
               placeholder="••••••••"
               disabled={loading}
