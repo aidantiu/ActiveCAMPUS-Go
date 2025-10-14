@@ -14,6 +14,28 @@ export default function DashboardPage() {
     campusEnergy: 0,
     rank: "--",
   });
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Load sidebar state from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("ac_sidebar_open");
+      if (saved !== null) {
+        setSidebarOpen(saved === "true");
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  // Persist sidebar state
+  useEffect(() => {
+    try {
+      localStorage.setItem("ac_sidebar_open", sidebarOpen ? "true" : "false");
+    } catch (e) {
+      // ignore
+    }
+  }, [sidebarOpen]);
 
   // Redirect to login if not authenticated
   useEffect(() => {

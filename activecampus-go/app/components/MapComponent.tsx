@@ -1,6 +1,13 @@
-'use client';
+ 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import {
+  DEFAULT_CHALLENGES,
+  buildChallengeIcons,
+  challengeInfoWindowTemplate,
+  createChallengeMarkers,
+  Challenge,
+} from '../../lib/campusChallenges';
 
 interface MapComponentProps {
   onLocationUpdate?: (lat: number, lng: number) => void;
@@ -23,6 +30,7 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
   const userMarkerRef = useRef<google.maps.Marker | null>(null);
   const accuracyCircleRef = useRef<google.maps.Circle | null>(null);
   const watchIdRef = useRef<number | null>(null);
+  const challengeIconRef = useRef<Record<string, google.maps.Symbol> | null>(null);
   const firstPositionHandledRef = useRef(false);
   const [logs, setLogs] = useState<string[]>([]);
 
@@ -36,8 +44,24 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
   const [error, setError] = useState<string | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [campusEnergy, setCampusEnergy] = useState<number>(0);
+
+  // Challenge state
+  const [claimedChallenges, setClaimedChallenges] = useState<Record<string, boolean>>({});
+  const claimedChallengesRef = useRef<Record<string, boolean>>({});
+  const challengeMarkersRef = useRef<Record<string, google.maps.Marker>>({});
+  const userLocationRef = useRef<{ lat: number; lng: number } | null>(null);
 
   // Initialize Google Maps
+  useEffect(() => {
+    // keep refs up-to-date for access inside Google Maps event listeners
+    claimedChallengesRef.current = claimedChallenges;
+  }, [claimedChallenges]);
+
+  useEffect(() => {
+    userLocationRef.current = userLocation;
+  }, [userLocation]);
+
   useEffect(() => {
     const initMap = () => {
       try {
@@ -69,8 +93,9 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
         }
 
         // Load Google Maps script
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`;
+  const script = document.createElement('script');
+  // Include geometry library for distance calculations
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=geometry`;
         script.async = true;
         script.defer = true;
         
@@ -143,6 +168,67 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
         });
 
         setMap(mapInstance);
+
+        // --- Campus Challenges ---
+        // Build icons and create markers using helpers in lib/campusChallenges
+        challengeIconRef.current = buildChallengeIcons(google);
+        const markers = createChallengeMarkers(google, mapInstance, DEFAULT_CHALLENGES, challengeIconRef.current as any);
+
+        // Wire up per-marker click handling that uses runtime userLocation and claimedChallenges state
+        // Use a single shared InfoWindow to avoid multiple overlapping windows causing display issues
+        const sharedInfoWindow = new google.maps.InfoWindow();
+        Object.keys(markers).forEach((id) => {
+          const marker = markers[id];
+          const ch = DEFAULT_CHALLENGES.find((c) => c.id === id) as Challenge | undefined;
+          if (!marker || !ch) return;
+
+          marker.addListener('click', () => {
+            pushLog(`Marker clicked: ${ch.id}`);
+            const userPos = userLocationRef.current || PUP_CAMPUS;
+            let dist = 0;
+            try {
+              dist = google.maps.geometry.spherical.computeDistanceBetween(
+                new google.maps.LatLng(userPos.lat, userPos.lng),
+                new google.maps.LatLng(ch.lat, ch.lng)
+              );
+            } catch (e) {
+              // geometry library might be missing; keep dist=0 to avoid blocking interaction
+            }
+
+            const within = dist <= 50;
+            sharedInfoWindow.setContent(challengeInfoWindowTemplate(ch, within, !!claimedChallengesRef.current[id]));
+            sharedInfoWindow.open(mapInstance, marker);
+
+            setTimeout(() => {
+              const btn = document.getElementById(`claim-${ch.id}`);
+              if (!btn) return;
+              btn.onclick = () => {
+                if (!within) {
+                  pushLog(`Attempted to claim ${ch.id} but not within proximity (${Math.round(dist)}m)`);
+                  alert('You must be within 50 meters of the location to claim this reward.');
+                  return;
+                }
+                if (claimedChallengesRef.current[ch.id]) {
+                  pushLog(`Challenge ${ch.id} already claimed`);
+                  return;
+                }
+
+                // Claim reward
+                setClaimedChallenges((s) => ({ ...s, [ch.id]: true }));
+                // sync the ref immediately so other listeners see updated state
+                claimedChallengesRef.current = { ...claimedChallengesRef.current, [ch.id]: true };
+                setCampusEnergy((e) => e + ch.reward);
+                pushLog(`Claimed challenge ${ch.id} +${ch.reward} CE`);
+
+                // Update info window content to show claimed and change marker icon to indicate claimed
+                sharedInfoWindow.setContent(challengeInfoWindowTemplate(ch, true, true));
+                marker.setIcon(challengeIconRef.current?.claimed || undefined);
+              };
+            }, 50);
+          });
+
+          challengeMarkersRef.current[id] = marker;
+        });
 
         // Add click listener to add custom markers
         mapInstance.addListener('click', (e: google.maps.MapMouseEvent) => {
@@ -264,7 +350,7 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
         setAccuracyCircle(circle);
       }
 
-      if (onLocationUpdate) onLocationUpdate(userLatLng.lat, userLatLng.lng);
+  if (onLocationUpdate) onLocationUpdate(userLatLng.lat, userLatLng.lng);
 
       if (!firstPositionHandledRef.current) {
         map.panTo(userLatLng);
@@ -273,6 +359,33 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
       
       if (error) setError(null);
       pushLog(`Position updated: lat=${userLatLng.lat.toFixed(6)} lng=${userLatLng.lng.toFixed(6)} acc=${position.coords.accuracy?.toFixed(0)}m`);
+
+      // Update challenge proximity visuals
+      try {
+        const markers = challengeMarkersRef.current;
+        Object.keys(markers).forEach((id) => {
+          const m = markers[id];
+          if (!m) return;
+          const markerPos = m.getPosition();
+          if (!markerPos) return;
+          const dist = google.maps.geometry.spherical.computeDistanceBetween(
+            new google.maps.LatLng(userLatLng.lat, userLatLng.lng),
+            markerPos
+          );
+
+          const within = dist <= 50;
+          // If within and not claimed, highlight marker using programmatic symbol
+          if (within && !claimedChallenges[id]) {
+            m.setIcon(challengeIconRef.current?.nearby || undefined);
+          } else if (claimedChallenges[id]) {
+            m.setIcon(challengeIconRef.current?.claimed || undefined);
+          } else {
+            m.setIcon(challengeIconRef.current?.default || undefined);
+          }
+        });
+      } catch (e) {
+        // geometry library may not be loaded; ignore
+      }
     };
 
     const startTracking = () => {
