@@ -28,6 +28,11 @@ if (getApps().length === 0) {
     // Fallback for development/testing (limited functionality)
     // This will work for some operations but not all
     console.warn('⚠️  Firebase Admin: No service account credentials found. Some features may not work.');
+    console.warn('⚠️  To fix this, add service account credentials to your .env file:');
+    console.warn('⚠️  1. Go to Firebase Console > Project Settings > Service Accounts');
+    console.warn('⚠️  2. Generate a new private key');
+    console.warn('⚠️  3. Add FIREBASE_PRIVATE_KEY and FIREBASE_CLIENT_EMAIL to .env');
+    // For development, initialize without credentials (will fail on Firestore operations)
     adminApp = initializeApp({
       projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
     });

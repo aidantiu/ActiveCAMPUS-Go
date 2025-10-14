@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../components/AuthProvider';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function ChooseMapPage() {
   const { user, loading, signOut } = useAuth();
@@ -61,7 +62,7 @@ export default function ChooseMapPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            🗺️ Choose Your Campus
+            Choose Your Campus
           </h1>
           <p className="text-xl text-gray-600">
             Select a campus to start your adventure
@@ -80,9 +81,15 @@ export default function ChooseMapPage() {
             
             {/* Content */}
             <div className="relative p-8">
-              {/* Icon */}
-              <div className="text-6xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
-                🏛️
+              {/* PUP Icon */}
+              <div className="mb-4 flex justify-center transform group-hover:scale-110 transition-transform duration-300">
+                <Image
+                  src="/icons/pup-logo.svg"
+                  alt="PUP Logo"
+                  width={96}
+                  height={96}
+                  className="object-contain"
+                />
               </div>
               
               {/* Title */}
@@ -151,7 +158,6 @@ export default function ChooseMapPage() {
         {/* Info Box */}
         <div className="mt-12 bg-white rounded-xl shadow-md p-6 text-center">
           <div className="flex items-center justify-center gap-3 mb-3">
-            <span className="text-2xl">ℹ️</span>
             <h3 className="text-lg font-bold text-gray-900">How It Works</h3>
           </div>
           <p className="text-gray-600">

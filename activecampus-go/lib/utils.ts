@@ -48,23 +48,16 @@ export const formatCE = (ce: number): string => {
   return `${ce} CE`;
 };
 
-// Calculate progress to next level
-export const calculateLevelProgress = (totalSteps: number): { 
-  currentLevel: number; 
-  progress: number; 
-  stepsToNextLevel: number;
-} => {
-  const stepsPerLevel = 5000;
-  const currentLevel = Math.floor(totalSteps / stepsPerLevel) + 1;
-  const stepsInCurrentLevel = totalSteps % stepsPerLevel;
-  const progress = (stepsInCurrentLevel / stepsPerLevel) * 100;
-  const stepsToNextLevel = stepsPerLevel - stepsInCurrentLevel;
+// Calculate CE earned from steps
+export const calculateCEFromSteps = (steps: number): number => {
+  // Example: 100 steps = 1 CE
+  return Math.floor(steps / 100);
+};
 
-  return {
-    currentLevel,
-    progress,
-    stepsToNextLevel,
-  };
+// Calculate level from total steps
+export const calculateLevel = (totalSteps: number): number => {
+  // Example: Every 5000 steps = 1 level
+  return Math.floor(totalSteps / 5000) + 1;
 };
 
 // PUP Departments

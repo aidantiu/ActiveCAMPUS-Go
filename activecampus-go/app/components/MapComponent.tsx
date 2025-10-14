@@ -80,6 +80,30 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
     userLocationRef.current = userLocation;
   }, [userLocation]);
 
+  // Save claimed challenges to localStorage when they change
+  useEffect(() => {
+    if (user && user.uid) {
+      saveClaimedChallengesToLocal(user.uid, claimedChallenges);
+    }
+  }, [claimedChallenges, user]);
+
+  // Sync claimed challenges and campusEnergy from authenticated user's profile
+  useEffect(() => {
+    if (userProfile && user) {
+      const completed = userProfile.completedChallenges || [];
+      const backendMap: Record<string, boolean> = {};
+      completed.forEach((id) => (backendMap[id] = true));
+      
+      // Load local claims and merge (union) with backend
+      const localMap = loadClaimedChallengesFromLocal(user.uid);
+      const mergedMap = { ...localMap, ...backendMap }; // backend takes precedence? No, union so local persists
+      
+      setClaimedChallenges(mergedMap);
+      claimedChallengesRef.current = mergedMap;
+      setCampusEnergy(userProfile.campusEnergy || 0);
+    }
+  }, [userProfile, user]);
+
   useEffect(() => {
     const initMap = () => {
       try {
@@ -282,6 +306,11 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
             }, 50);
           });
 
+          // Initialize icon based on claimed state
+          if (claimedChallengesRef.current[id]) {
+            marker.setIcon(challengeIconRef.current?.claimed || undefined);
+          }
+
           challengeMarkersRef.current[id] = marker;
         });
 
@@ -315,14 +344,98 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
 
   // Track user location
   useEffect(() => {
-    if (!map) {
-      return;
-    }
+    if (!map) return;
 
-    if (!navigator.geolocation) {
-      setError('Geolocation is not supported. Using PUP campus as default location.');
-      setUserLocation(PUP_CAMPUS);
-      return;
+    // If forced demo mode is enabled, randomize a demo location on the campus and skip real geolocation
+    if (FORCE_DEMO_MODE) {
+      pushLog('FORCE_DEMO_MODE enabled — using randomized demo location');
+      setIsTracking(true);
+
+      const demoLocation = {
+        lat: PUP_CAMPUS.lat + (Math.random() - 0.5) * 0.002,
+        lng: PUP_CAMPUS.lng + (Math.random() - 0.5) * 0.002,
+      };
+
+      setUserLocation(demoLocation);
+
+      // Create or update marker
+      if (userMarkerRef.current) {
+        userMarkerRef.current.setPosition(demoLocation);
+        userMarkerRef.current.setIcon({
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+          fillColor: '#FFA500',
+          fillOpacity: 1,
+          strokeColor: '#FFFFFF',
+          strokeWeight: 3,
+        });
+      } else {
+        const marker = new google.maps.Marker({
+          position: demoLocation,
+          map: map,
+          title: 'Demo Location (Simulated)',
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 8,
+            fillColor: '#FFA500',
+            fillOpacity: 1,
+            strokeColor: '#FFFFFF',
+            strokeWeight: 3,
+          },
+        });
+
+        const infoWindow = new google.maps.InfoWindow({
+          content: `<div>
+            <h3 style=\"font-weight: bold; margin-bottom: 4px; color: #FFA500;\">Demo Location</h3>
+            <p style=\"font-size: 12px;\">Simulated position for testing</p>
+            <p style=\"font-size: 11px;\">Lat: ${demoLocation.lat.toFixed(6)}</p>
+            <p style=\"font-size: 11px;\">Lng: ${demoLocation.lng.toFixed(6)}</p>
+          </div>`,
+        });
+
+        marker.addListener('click', () => {
+          infoWindow.open(map, marker);
+        });
+
+        userMarkerRef.current = marker;
+        setUserMarker(marker);
+      }
+
+      // Create or update accuracy circle
+      if (accuracyCircleRef.current) {
+        accuracyCircleRef.current.setCenter(demoLocation);
+        accuracyCircleRef.current.setRadius(20);
+        accuracyCircleRef.current.setOptions({ strokeColor: '#FFA500', fillColor: '#FFA500' });
+      } else {
+        const circle = new google.maps.Circle({
+          strokeColor: '#FFA500',
+          strokeOpacity: 0.3,
+          strokeWeight: 1,
+          fillColor: '#FFA500',
+          fillOpacity: 0.1,
+          map: map,
+          center: demoLocation,
+          radius: 20,
+        });
+        accuracyCircleRef.current = circle;
+        setAccuracyCircle(circle);
+      }
+
+      if (onLocationUpdate) onLocationUpdate(demoLocation.lat, demoLocation.lng);
+      map.panTo(demoLocation);
+      map.setZoom(18);
+
+      return () => {
+        if (userMarkerRef.current) {
+          userMarkerRef.current.setMap(null);
+          userMarkerRef.current = null;
+        }
+        if (accuracyCircleRef.current) {
+          accuracyCircleRef.current.setMap(null);
+          accuracyCircleRef.current = null;
+        }
+        pushLog('FORCE_DEMO_MODE cleanup complete');
+      };
     }
 
     let isMounted = true;
@@ -348,6 +461,8 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
         lat: position.coords.latitude,
         lng: position.coords.longitude,
       };
+
+      pushLog(`applyPosition received coords: lat=${userLatLng.lat} lng=${userLatLng.lng} acc=${position.coords.accuracy}`);
 
       setUserLocation(userLatLng);
 
@@ -543,6 +658,7 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
     // Try to get current position immediately (not watching)
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        pushLog('Manual getCurrentPosition succeeded');
         const userLatLng = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
@@ -599,8 +715,9 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
       lng: 121.0107 + (Math.random() - 0.5) * 0.002,
     };
 
-    setUserLocation(demoLocation);
-    setError('Using demo location near PUP campus for testing');
+  pushLog('Using demo location (simulated)');
+  setUserLocation(demoLocation);
+  setError('Using demo location near PUP campus for testing');
     setIsTracking(true);
 
     // Create or update marker

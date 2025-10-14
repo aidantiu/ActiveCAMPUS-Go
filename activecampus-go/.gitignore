@@ -39,3 +39,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+active-campus-go-firebase-adminsdk-fbsvc-7b094682ff.json
