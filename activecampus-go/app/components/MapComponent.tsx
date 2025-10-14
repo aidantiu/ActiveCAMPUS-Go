@@ -23,6 +23,30 @@ const PUP_CAMPUS = {
   name: 'PUP Sta. Mesa Campus'
 };
 
+// Enable this to always use demo location (useful for testing without GPS)
+const FORCE_DEMO_MODE = false;
+
+// LocalStorage helpers for claimed challenges
+const saveClaimedChallengesToLocal = (uid: string, claimed: Record<string, boolean>) => {
+  try {
+    localStorage.setItem(`ac_claimed_${uid}`, JSON.stringify(claimed));
+  } catch (e) {
+    console.warn('Failed to save claimed challenges to localStorage', e);
+  }
+};
+
+const loadClaimedChallengesFromLocal = (uid: string): Record<string, boolean> => {
+  try {
+    const stored = localStorage.getItem(`ac_claimed_${uid}`);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    console.warn('Failed to load claimed challenges from localStorage', e);
+  }
+  return {};
+};
+
 export default function MapComponent({ onLocationUpdate, onChallengeComplete }: MapComponentProps) {
   const { user, userProfile, refreshUserProfile } = useAuth();
   const mapRef = useRef<HTMLDivElement>(null);
@@ -56,23 +80,10 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
   const claimedChallengesRef = useRef<Record<string, boolean>>({});
   const challengeMarkersRef = useRef<Record<string, google.maps.Marker>>({});
   const userLocationRef = useRef<{ lat: number; lng: number } | null>(null);
+  const [campusEnergy, setCampusEnergy] = useState<number>(0);
 
-  // Initialize claimed challenges from user profile
+  // Keep refs up-to-date for access inside Google Maps event listeners
   useEffect(() => {
-    if (userProfile && userProfile.completedChallenges) {
-      const claimed: Record<string, boolean> = {};
-      userProfile.completedChallenges.forEach(challengeId => {
-        claimed[challengeId] = true;
-      });
-      setClaimedChallenges(claimed);
-      claimedChallengesRef.current = claimed;
-      pushLog(`Loaded ${userProfile.completedChallenges.length} completed challenges from profile`);
-    }
-  }, [userProfile]);
-
-  // Initialize Google Maps
-  useEffect(() => {
-    // keep refs up-to-date for access inside Google Maps event listeners
     claimedChallengesRef.current = claimedChallenges;
   }, [claimedChallenges]);
 
@@ -96,11 +107,13 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
       
       // Load local claims and merge (union) with backend
       const localMap = loadClaimedChallengesFromLocal(user.uid);
-      const mergedMap = { ...localMap, ...backendMap }; // backend takes precedence? No, union so local persists
+      const mergedMap = { ...localMap, ...backendMap };
       
       setClaimedChallenges(mergedMap);
       claimedChallengesRef.current = mergedMap;
       setCampusEnergy(userProfile.campusEnergy || 0);
+      
+      pushLog(`Loaded ${completed.length} challenges from backend, merged with local data`);
     }
   }, [userProfile, user]);
 
