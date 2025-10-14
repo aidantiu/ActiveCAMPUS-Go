@@ -31,7 +31,7 @@ export default function Home() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center">
+    <div className="">
       <div
         className="relative h-screen w-screen bg-cover bg-center bg-no-repeat flex items-center justify-center overflow-hidden"
         style={{ backgroundImage: `url(${introBg.src})` }}
@@ -40,8 +40,8 @@ export default function Home() {
       <img
         src={logo.src}
         alt="ActiveCampus GO Logo"
-        className={`absolute w-[570px] h-auto transition-all duration-700 ease-in-out transform ${
-          isShifted ? "-translate-y-75" : "translate-y-0"
+        className={`absolute w-[400px] h-auto transition-all duration-700 ease-in-out transform ${
+          isShifted ? "-translate-y-60" : "translate-y-0"
         }`}
       />
 
@@ -49,10 +49,10 @@ export default function Home() {
       <img
         src={groupStudents.src}
         alt="Group of Students"
-        className={`absolute w-[500px] h-auto transition-opacity duration-700 ease-in-out ${
+        className={`absolute w-[400px] h-auto transition-opacity duration-700 ease-in-out ${
           showStudents
-            ? "opacity-100 -translate-y-12"
-            : "opacity-0 -translate-y-12"
+            ? "opacity-100 -translate-y-10"
+            : "opacity-0 -translate-y-10"
         }`}
       />
 
@@ -63,17 +63,17 @@ export default function Home() {
         }`}
         style={{ top: "62%" }} // positions the frame below the logo
       >
-        <img src={textFrame.src} alt="Text Frame" className="w-[400px] h-auto" />
+        <img src={textFrame.src} alt="Text Frame" className="w-[320px] h-auto" />
 
         {/* Text on top of the text frame */}
         <span
-          className="absolute text-[24px] font-semibold text-[#dfd2e9] text-center leading-tight"
+          className="absolute text-[18px] font-semibold text-[#dfd2e9] text-center leading-tight"
           style={{
             textShadow: `
-        -2px -2px 0 black,
-        2px -2px 0 black,
-        -2px 2px 0 black,
-        2px 2px 0 black
+        -1px -2px 0 black,
+        2px -1px 0 black,
+        -1px 1px 0 black,
+        2px 1px 0 black
       `,
             top: "33%", // adjust vertically to fit your frame
           }}
@@ -85,17 +85,17 @@ export default function Home() {
       {/* Button Frame */}
       {showButton && (
         <button
-          onClick={() => router.push("/register")}
+          onClick={() => router.push("/login")}
           className="absolute flex flex-col items-center justify-center transition-all duration-700 ease-in-out opacity-0 animate-fadeIn hover:scale-105"
           style={{ top: "75%" }} // positions the button below students
         >
           <img
             src={btnFrame.src}
             alt="Button Frame"
-            className="w-[370px] h-auto"
+            className="w-[290px] h-auto"
           />
           <span
-            className="absolute text-[30px] font-semibold text-[#8AC1E3]"
+            className="absolute text-[24px] font-semibold text-[#8AC1E3]"
             style={{
               textShadow: `
       -2px -2px 0 black,
