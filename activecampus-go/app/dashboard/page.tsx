@@ -7,7 +7,7 @@ import MapComponent from "../components/MapComponent";
 import Sidebar from "../components/Sidebar";
 
 export default function DashboardPage() {
-  const { user, loading, signOut } = useAuth();
+  const { user, userProfile, loading, signOut, refreshUserProfile } = useAuth();
   const router = useRouter();
   const [userStats, setUserStats] = useState({
     steps: 0,
@@ -37,6 +37,17 @@ export default function DashboardPage() {
     }
   }, [sidebarOpen]);
 
+  // Update user stats from profile
+  useEffect(() => {
+    if (userProfile) {
+      setUserStats({
+        steps: userProfile.totalSteps,
+        campusEnergy: userProfile.campusEnergy,
+        rank: "--", // Calculate rank later if needed
+      });
+    }
+  }, [userProfile]);
+
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!loading && !user) {
@@ -49,6 +60,12 @@ export default function DashboardPage() {
     // TODO: Update user location in Firestore
     // TODO: Calculate steps based on distance
     console.log('Location updated:', { lat, lng });
+  };
+
+  // Challenge complete handler
+  const handleChallengeComplete = async () => {
+    await refreshUserProfile();
+    console.log('Challenge completed - profile refreshed in dashboard');
   };
 
   if (loading) {
@@ -83,7 +100,10 @@ export default function DashboardPage() {
 
         {/* Content (Map) */}
         <main className="flex-1 relative overflow-hidden">
-          <MapComponent onLocationUpdate={handleLocationUpdate} />
+          <MapComponent 
+            onLocationUpdate={handleLocationUpdate}
+            onChallengeComplete={handleChallengeComplete}
+          />
         </main>
 
         {/* Bottom navigation removed per request */}

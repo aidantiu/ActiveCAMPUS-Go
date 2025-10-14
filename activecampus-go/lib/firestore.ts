@@ -156,43 +156,131 @@ export const completeChallenge = async (challengeId: string, uid: string) => {
   const challengeRef = doc(db, 'challenges', challengeId);
   const challengeSnap = await getDoc(challengeRef);
   
+  // Get user first to check if already completed
+  const user = await getUser(uid);
+  if (!user) {
+    return { success: false, reward: 0 };
+  }
+  
+  // Check if user already completed this challenge
+  if (user.completedChallenges && user.completedChallenges.includes(challengeId)) {
+    return { success: false, reward: 0 };
+  }
+  
+  let challengeReward = 0;
+  let badgeReward: string | undefined;
+  
   if (challengeSnap.exists()) {
     const challenge = challengeSnap.data() as Challenge;
+    challengeReward = challenge.reward;
+    badgeReward = challenge.badgeReward;
     
-    if (!challenge.completedBy.includes(uid)) {
-      // Add user to completedBy array
-      await updateDoc(challengeRef, {
-        completedBy: arrayUnion(uid)
-      });
-      
-      // Award CE and badge to user
-      const userRef = doc(db, 'users', uid);
-      const user = await getUser(uid);
-      
-      if (user) {
-        const newCampusEnergy = user.campusEnergy + challenge.reward;
-        const newLevel = calculateLevel(user.totalSteps);
-        
-        const updateData: any = {
-          campusEnergy: newCampusEnergy,
-          level: newLevel,
-          completedChallenges: arrayUnion(challengeId),
-          lastActive: Timestamp.now(),
-        };
-        
-        // Add badge if challenge awards one
-        if (challenge.badgeReward) {
-          updateData.badges = arrayUnion(challenge.badgeReward);
-        }
-        
-        await updateDoc(userRef, updateData);
-      }
-      
-      return { success: true, reward: challenge.reward };
+    // Add user to completedBy array in challenge document
+    await updateDoc(challengeRef, {
+      completedBy: arrayUnion(uid)
+    });
+  } else {
+    // If challenge doesn't exist in Firebase, we can still award points from the local definition
+    // This allows for backwards compatibility and easier development
+    console.warn(`Challenge ${challengeId} not found in Firebase, awarding default points`);
+    // Default rewards based on challenge ID (you can customize this)
+    const defaultRewards: Record<string, number> = {
+      'lagoon': 50,
+      'library': 30,
+      'gym': 40
+    };
+    challengeReward = defaultRewards[challengeId] || 25;
+  }
+  
+  // Award CE and badge to user
+  const userRef = doc(db, 'users', uid);
+  const newCampusEnergy = user.campusEnergy + challengeReward;
+  const newLevel = calculateLevel(user.totalSteps);
+  
+  const updateData: any = {
+    campusEnergy: newCampusEnergy,
+    level: newLevel,
+    completedChallenges: arrayUnion(challengeId),
+    lastActive: Timestamp.now(),
+  };
+  
+  // Add badge if challenge awards one
+  if (badgeReward) {
+    updateData.badges = arrayUnion(badgeReward);
+  }
+  
+  await updateDoc(userRef, updateData);
+  
+  return { success: true, reward: challengeReward };
+};
+
+// Helper function to initialize default challenges in Firebase
+export const initializeDefaultChallenges = async () => {
+  const defaultChallenges = [
+    {
+      id: 'lagoon',
+      name: 'Walk to the Lagoon',
+      description: 'Walk to the campus lagoon to earn Campus Energy.',
+      type: 'location' as const,
+      location: {
+        lat: 14.5998,
+        lng: 121.0112,
+        name: 'PUP Lagoon'
+      },
+      radius: 50,
+      reward: 50,
+      difficulty: 'easy' as const,
+      isActive: true,
+      completedBy: [],
+      createdAt: Timestamp.now()
+    },
+    {
+      id: 'library',
+      name: 'Library Loop',
+      description: 'Take a stroll around the main library.',
+      type: 'location' as const,
+      location: {
+        lat: 14.5993,
+        lng: 121.0099,
+        name: 'PUP Main Library'
+      },
+      radius: 50,
+      reward: 30,
+      difficulty: 'easy' as const,
+      isActive: true,
+      completedBy: [],
+      createdAt: Timestamp.now()
+    },
+    {
+      id: 'gym',
+      name: 'Gym Dash',
+      description: 'Visit the campus gym to get a quick reward.',
+      type: 'location' as const,
+      location: {
+        lat: 14.6000,
+        lng: 121.0100,
+        name: 'PUP Gymnasium'
+      },
+      radius: 50,
+      reward: 40,
+      difficulty: 'easy' as const,
+      isActive: true,
+      completedBy: [],
+      createdAt: Timestamp.now()
+    }
+  ];
+
+  for (const challenge of defaultChallenges) {
+    const challengeRef = doc(db, 'challenges', challenge.id);
+    const challengeSnap = await getDoc(challengeRef);
+    
+    if (!challengeSnap.exists()) {
+      await setDoc(challengeRef, challenge);
+      console.log(`Initialized challenge: ${challenge.id}`);
     }
   }
   
-  return { success: false, reward: 0 };
+  return defaultChallenges.length;
 };
 
 // Department Events (now School Events)

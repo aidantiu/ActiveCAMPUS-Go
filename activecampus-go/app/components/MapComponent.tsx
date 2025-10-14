@@ -8,9 +8,12 @@ import {
   createChallengeMarkers,
   Challenge,
 } from '../../lib/campusChallenges';
+import { useAuth } from './AuthProvider';
+import { completeChallenge } from '@/lib/firestore';
 
 interface MapComponentProps {
   onLocationUpdate?: (lat: number, lng: number) => void;
+  onChallengeComplete?: () => void;
 }
 
 // PUP Sta. Mesa Main Campus coordinates
@@ -20,7 +23,8 @@ const PUP_CAMPUS = {
   name: 'PUP Sta. Mesa Campus'
 };
 
-export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
+export default function MapComponent({ onLocationUpdate, onChallengeComplete }: MapComponentProps) {
+  const { user, userProfile, refreshUserProfile } = useAuth();
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [userMarker, setUserMarker] = useState<google.maps.Marker | null>(null);
@@ -44,13 +48,27 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
   const [error, setError] = useState<string | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [campusEnergy, setCampusEnergy] = useState<number>(0);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isClaimingReward, setIsClaimingReward] = useState(false);
 
-  // Challenge state
+  // Challenge state - initialize from user profile
   const [claimedChallenges, setClaimedChallenges] = useState<Record<string, boolean>>({});
   const claimedChallengesRef = useRef<Record<string, boolean>>({});
   const challengeMarkersRef = useRef<Record<string, google.maps.Marker>>({});
   const userLocationRef = useRef<{ lat: number; lng: number } | null>(null);
+
+  // Initialize claimed challenges from user profile
+  useEffect(() => {
+    if (userProfile && userProfile.completedChallenges) {
+      const claimed: Record<string, boolean> = {};
+      userProfile.completedChallenges.forEach(challengeId => {
+        claimed[challengeId] = true;
+      });
+      setClaimedChallenges(claimed);
+      claimedChallengesRef.current = claimed;
+      pushLog(`Loaded ${userProfile.completedChallenges.length} completed challenges from profile`);
+    }
+  }, [userProfile]);
 
   // Initialize Google Maps
   useEffect(() => {
@@ -202,7 +220,7 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
             setTimeout(() => {
               const btn = document.getElementById(`claim-${ch.id}`);
               if (!btn) return;
-              btn.onclick = () => {
+              btn.onclick = async () => {
                 if (!within) {
                   pushLog(`Attempted to claim ${ch.id} but not within proximity (${Math.round(dist)}m)`);
                   alert('You must be within 50 meters of the location to claim this reward.');
@@ -212,17 +230,54 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
                   pushLog(`Challenge ${ch.id} already claimed`);
                   return;
                 }
+                if (!user) {
+                  alert('You must be logged in to claim rewards.');
+                  return;
+                }
+                if (isClaimingReward) {
+                  return; // Prevent multiple simultaneous claims
+                }
 
-                // Claim reward
-                setClaimedChallenges((s) => ({ ...s, [ch.id]: true }));
-                // sync the ref immediately so other listeners see updated state
-                claimedChallengesRef.current = { ...claimedChallengesRef.current, [ch.id]: true };
-                setCampusEnergy((e) => e + ch.reward);
-                pushLog(`Claimed challenge ${ch.id} +${ch.reward} CE`);
+                // Claim reward in Firebase
+                setIsClaimingReward(true);
+                pushLog(`Claiming challenge ${ch.id}...`);
+                
+                try {
+                  const result = await completeChallenge(ch.id, user.uid);
+                  
+                  if (result.success) {
+                    // Update local state
+                    setClaimedChallenges((s) => ({ ...s, [ch.id]: true }));
+                    claimedChallengesRef.current = { ...claimedChallengesRef.current, [ch.id]: true };
+                    
+                    // Show success message
+                    setSuccessMessage(`🎉 Quest completed! +${ch.reward} CE earned!`);
+                    setTimeout(() => setSuccessMessage(null), 3000);
+                    
+                    pushLog(`Successfully claimed challenge ${ch.id} +${ch.reward} CE`);
 
-                // Update info window content to show claimed and change marker icon to indicate claimed
-                sharedInfoWindow.setContent(challengeInfoWindowTemplate(ch, true, true));
-                marker.setIcon(challengeIconRef.current?.claimed || undefined);
+                    // Refresh user profile to get updated CE
+                    await refreshUserProfile();
+                    
+                    // Notify parent component
+                    if (onChallengeComplete) {
+                      onChallengeComplete();
+                    }
+
+                    // Update info window content to show claimed and change marker icon
+                    sharedInfoWindow.setContent(challengeInfoWindowTemplate(ch, true, true));
+                    marker.setIcon(challengeIconRef.current?.claimed || undefined);
+                  } else {
+                    pushLog(`Failed to claim challenge ${ch.id}: ${result.reward === 0 ? 'Already completed' : 'Unknown error'}`);
+                    alert('Failed to claim reward. You may have already claimed it.');
+                  }
+                } catch (error) {
+                  console.error('Error claiming challenge:', error);
+                  pushLog(`Error claiming challenge ${ch.id}: ${error}`);
+                  alert('An error occurred while claiming the reward. Please try again.');
+                } finally {
+                  setIsClaimingReward(false);
+                }
               };
             }, 50);
           });
@@ -424,7 +479,7 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
             clearExistingWatch();
           } else if (err?.code === 2) {
             // Position unavailable
-            setError('Location unavailable. GPS signal may be weak. Try "Use Demo Location" or move to an open area.');
+            setError('Try to "Use Demo Location" or move to an open area.');
             // Don't stop tracking - watchPosition will keep trying
           } else if (err?.code === 3) {
             // Timeout
@@ -730,6 +785,24 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
           </span>
         </div>
         
+        {/* Campus Energy Display */}
+        {userProfile && (
+          <div className="mt-3 pt-3 border-t border-gray-200">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-600">Campus Energy:</span>
+              <span className="text-sm font-bold text-blue-600">{userProfile.campusEnergy} CE</span>
+            </div>
+            <div className="flex items-center justify-between mt-1">
+              <span className="text-xs text-gray-600">Level:</span>
+              <span className="text-sm font-semibold text-purple-600">{userProfile.level}</span>
+            </div>
+            <div className="flex items-center justify-between mt-1">
+              <span className="text-xs text-gray-600">Quests Completed:</span>
+              <span className="text-sm font-semibold text-green-600">{userProfile.completedChallenges?.length || 0}</span>
+            </div>
+          </div>
+        )}
+        
         {error && (
           <p className="text-red-600 text-xs mt-2">{error}</p>
         )}
@@ -741,6 +814,13 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
           </div>
         )}
       </div>
+
+      {/* Success Message Notification */}
+      {successMessage && (
+        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-xl z-50 animate-bounce">
+          <p className="font-semibold text-sm">{successMessage}</p>
+        </div>
+      )}
     </div>
   );
 }
