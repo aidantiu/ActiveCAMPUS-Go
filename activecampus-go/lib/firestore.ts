@@ -20,7 +20,7 @@ export interface User {
   uid: string;
   displayName: string;
   email: string;
-  department: string; // e.g., "Engineering", "Business", "Computer Science"
+  school: string; // e.g., "Polytechnic University of the Philippines"
   avatar: {
     base: string; // base avatar type
     accessories: string[]; // unlocked accessories
@@ -42,7 +42,7 @@ export const createUser = async (uid: string, userData: Partial<User>) => {
   const userRef = doc(db, 'users', uid);
   await setDoc(userRef, {
     uid,
-    department: userData.department || '',
+    school: 'Polytechnic University of the Philippines', // Default to PUP for MVP
     avatar: {
       base: 'default',
       accessories: [],
@@ -106,11 +106,11 @@ export const getLeaderboard = async (limitCount: number = 10) => {
   return querySnapshot.docs.map(doc => doc.data() as User);
 };
 
-export const getDepartmentLeaderboard = async (department: string, limitCount: number = 10) => {
+export const getDepartmentLeaderboard = async (school: string, limitCount: number = 10) => {
   const usersRef = collection(db, 'users');
   const q = query(
     usersRef, 
-    where('department', '==', department),
+    where('school', '==', school),
     orderBy('campusEnergy', 'desc'), 
     limit(limitCount)
   );
@@ -195,12 +195,12 @@ export const completeChallenge = async (challengeId: string, uid: string) => {
   return { success: false, reward: 0 };
 };
 
-// Department Events
+// Department Events (now School Events)
 export interface DepartmentEvent {
   id: string;
   name: string;
   description: string;
-  department?: string; // if null, it's campus-wide
+  school?: string; // if null, it's cross-school
   startDate: Timestamp;
   endDate: Timestamp;
   challenges: string[]; // array of challenge IDs
