@@ -8,6 +8,7 @@ import {
   getLeaderboard,
   getChallenges,
   getActiveDepartmentEvents,
+  initializeDefaultChallenges,
   User 
 } from '@/lib/firestore';
 import { auth } from '@/lib/firebase';
@@ -113,6 +114,23 @@ export default function TestPage() {
     setLoading(false);
   };
 
+  const testInitializeChallenges = async () => {
+    setLoading(true);
+    try {
+      setStatus('Initializing default challenges in Firebase...');
+      const count = await initializeDefaultChallenges();
+      addResult('Initialize Challenges', true, { 
+        message: `Successfully initialized ${count} default challenges`,
+        challengeIds: ['lagoon', 'library', 'gym']
+      });
+      setStatus('✅ Challenges initialized!');
+    } catch (error: any) {
+      addResult('Initialize Challenges', false, { error: error.message });
+      setStatus(`❌ Failed to initialize challenges: ${error.message}`);
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
       <div className="max-w-4xl mx-auto">
@@ -139,20 +157,27 @@ export default function TestPage() {
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-4 mb-8">
+          <div className="flex gap-4 mb-8 flex-wrap">
             <button
               onClick={testFirebaseConnection}
-              className="bg-indigo-600 hover:bg-indigo-700 text-gray-900 font-bold py-3 px-6 rounded-lg transition-colors"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
               disabled={loading}
             >
               🔄 Run All Tests
             </button>
             <button
               onClick={testUpdateSteps}
-              className="bg-green-600 hover:bg-green-700 text-gray-900 font-bold py-3 px-6 rounded-lg transition-colors"
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
               disabled={loading || !userId}
             >
               🚶 Test Step Update
+            </button>
+            <button
+              onClick={testInitializeChallenges}
+              className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+              disabled={loading}
+            >
+              🎯 Initialize Challenges
             </button>
           </div>
 
@@ -201,6 +226,17 @@ export default function TestPage() {
               <li>Challenge Fetching</li>
               <li>Department Events</li>
             </ul>
+          </div>
+
+          {/* Setup Instructions */}
+          <div className="mt-4 p-6 bg-blue-50 border border-blue-200 rounded-lg">
+            <h4 className="font-bold text-blue-800 mb-2">🚀 First Time Setup:</h4>
+            <ol className="list-decimal list-inside text-blue-700 space-y-2 text-sm">
+              <li>Click <strong>"Initialize Challenges"</strong> to create default quest locations in Firebase</li>
+              <li>Run the full test suite to verify everything works</li>
+              <li>Use the Demo Location feature on the map to test quest completion</li>
+              <li>Complete quests to earn Campus Energy (CE) that persists in Firebase!</li>
+            </ol>
           </div>
 
           {/* Back to Home */}
