@@ -19,6 +19,19 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
   const [userMarker, setUserMarker] = useState<google.maps.Marker | null>(null);
   const [accuracyCircle, setAccuracyCircle] = useState<google.maps.Circle | null>(null);
   const [watchId, setWatchId] = useState<number | null>(null);
+  // Refs to hold latest instances for callbacks (avoid stale closures)
+  const userMarkerRef = useRef<google.maps.Marker | null>(null);
+  const accuracyCircleRef = useRef<google.maps.Circle | null>(null);
+  const watchIdRef = useRef<number | null>(null);
+  const firstPositionHandledRef = useRef(false);
+  const [logs, setLogs] = useState<string[]>([]);
+
+  const pushLog = (msg: string) => {
+    const ts = new Date().toISOString();
+    const line = `${ts} | ${msg}`;
+    setLogs((s) => [line, ...s].slice(0, 100));
+    console.debug(line);
+  };
   const [isTracking, setIsTracking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
@@ -167,145 +180,175 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
 
     if (!navigator.geolocation) {
       setError('Geolocation is not supported. Using PUP campus as default location.');
-      // Use PUP campus as default location
       setUserLocation(PUP_CAMPUS);
       return;
     }
 
-    let retryCount = 0;
-    const maxRetries = 2; // Reduced retries
+    let isMounted = true;
+    const stoppedRef = { current: false };
 
-    const startTracking = (useHighAccuracy: boolean = true) => {
-      setIsTracking(true);
-      
-      // Clear previous error when starting
-      if (retryCount === 0) {
-        setError(null);
+    const clearExistingWatch = () => {
+      if (watchIdRef.current !== null) {
+        try {
+          navigator.geolocation.clearWatch(watchIdRef.current);
+          pushLog(`clearWatch id=${watchIdRef.current}`);
+        } catch (e) {
+          console.debug('clearWatch failed', e);
+        }
+        watchIdRef.current = null;
+        setWatchId(null);
       }
+    };
+
+    const applyPosition = (position: GeolocationPosition) => {
+      if (!isMounted || stoppedRef.current) return;
+
+      const userLatLng = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      };
+
+      setUserLocation(userLatLng);
+
+      // Update or create user marker using refs
+      if (userMarkerRef.current) {
+        userMarkerRef.current.setPosition(userLatLng);
+      } else {
+        const marker = new google.maps.Marker({
+          position: userLatLng,
+          map: map,
+          title: 'Your Location',
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 8,
+            fillColor: '#4285F4',
+            fillOpacity: 1,
+            strokeColor: '#FFFFFF',
+            strokeWeight: 3,
+          },
+        });
+
+        const infoWindow = new google.maps.InfoWindow({
+          content: `<div>
+            <h3 style="font-weight: bold; margin-bottom: 4px;">Your Location</h3>
+            <p>Lat: ${userLatLng.lat.toFixed(6)}</p>
+            <p>Lng: ${userLatLng.lng.toFixed(6)}</p>
+            <p>Accuracy: ${position.coords.accuracy?.toFixed(0) || 'N/A'}m</p>
+          </div>`,
+        });
+
+        marker.addListener('click', () => {
+          infoWindow.open(map, marker);
+        });
+
+        userMarkerRef.current = marker;
+        setUserMarker(marker);
+      }
+
+      // Update or create accuracy circle using refs
+      if (accuracyCircleRef.current) {
+        accuracyCircleRef.current.setCenter(userLatLng);
+        if (position.coords.accuracy) accuracyCircleRef.current.setRadius(position.coords.accuracy);
+      } else {
+        const circle = new google.maps.Circle({
+          strokeColor: '#4285F4',
+          strokeOpacity: 0.3,
+          strokeWeight: 1,
+          fillColor: '#4285F4',
+          fillOpacity: 0.1,
+          map: map,
+          center: userLatLng,
+          radius: position.coords.accuracy || 30,
+        });
+        accuracyCircleRef.current = circle;
+        setAccuracyCircle(circle);
+      }
+
+      if (onLocationUpdate) onLocationUpdate(userLatLng.lat, userLatLng.lng);
+
+      if (!firstPositionHandledRef.current) {
+        map.panTo(userLatLng);
+        firstPositionHandledRef.current = true;
+      }
+      
+      if (error) setError(null);
+      pushLog(`Position updated: lat=${userLatLng.lat.toFixed(6)} lng=${userLatLng.lng.toFixed(6)} acc=${position.coords.accuracy?.toFixed(0)}m`);
+    };
+
+    const startTracking = () => {
+      if (!isMounted || stoppedRef.current) return;
+      
+      // Clear any existing watch before starting fresh
+      clearExistingWatch();
+      
+      setIsTracking(true);
+      setError(null);
+
+      pushLog('Starting location tracking...');
+      
+      const opts: PositionOptions = {
+        enableHighAccuracy: true,
+        timeout: 30000,
+        maximumAge: 0,
+      };
 
       const id = navigator.geolocation.watchPosition(
         (position) => {
-          // Reset retry count on success
-          retryCount = 0;
-          
-          const userLatLng = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-
-          setUserLocation(userLatLng);
-
-          // Update or create user marker
-          if (userMarker) {
-            userMarker.setPosition(userLatLng);
-          } else {
-            const marker = new google.maps.Marker({
-              position: userLatLng,
-              map: map,
-              title: 'Your Location',
-              icon: {
-                path: google.maps.SymbolPath.CIRCLE,
-                scale: 8,
-                fillColor: '#4285F4',
-                fillOpacity: 1,
-                strokeColor: '#FFFFFF',
-                strokeWeight: 3,
-              },
-            });
-
-            const infoWindow = new google.maps.InfoWindow({
-              content: `<div>
-                <h3 style="font-weight: bold; margin-bottom: 4px;">Your Location</h3>
-                <p>Lat: ${userLatLng.lat.toFixed(6)}</p>
-                <p>Lng: ${userLatLng.lng.toFixed(6)}</p>
-                <p>Accuracy: ${position.coords.accuracy.toFixed(0)}m</p>
-              </div>`,
-            });
-
-            marker.addListener('click', () => {
-              infoWindow.open(map, marker);
-            });
-
-            setUserMarker(marker);
-          }
-
-          // Update or create accuracy circle
-          if (accuracyCircle) {
-            accuracyCircle.setCenter(userLatLng);
-            accuracyCircle.setRadius(position.coords.accuracy);
-          } else {
-            const circle = new google.maps.Circle({
-              strokeColor: '#4285F4',
-              strokeOpacity: 0.3,
-              strokeWeight: 1,
-              fillColor: '#4285F4',
-              fillOpacity: 0.1,
-              map: map,
-              center: userLatLng,
-              radius: position.coords.accuracy,
-            });
-            setAccuracyCircle(circle);
-          }
-
-          // Call the callback if provided
-          if (onLocationUpdate) {
-            onLocationUpdate(userLatLng.lat, userLatLng.lng);
-          }
-
-          // Center map on user location (only on first position)
-          if (!watchId) {
-            map.panTo(userLatLng);
-          }
+          if (!isMounted || stoppedRef.current) return;
+          applyPosition(position);
         },
-        (error) => {
-          console.error('Error getting location:', error);
+        (err) => {
+          if (!isMounted || stoppedRef.current) return;
           
-          // Handle different error types
-          if (error.code === 1) {
-            // PERMISSION_DENIED
+          console.debug('Geolocation watch error', err);
+          pushLog(`Watch error: code=${err?.code} msg=${err?.message}`);
+          
+          if (err?.code === 1) {
+            // Permission denied
             setError('Location permission denied. Click "Use Demo Location" to simulate campus location.');
             setIsTracking(false);
-          } else if (error.code === 2) {
-            // POSITION_UNAVAILABLE
-            setError('Location unavailable. GPS may not be available. Try "Use Demo Location" button.');
-            setIsTracking(false);
-          } else if (error.code === 3) {
-            // TIMEOUT
-            retryCount++;
-            if (retryCount < maxRetries) {
-              // Retry with less accuracy requirement
-              setError(`Getting location... (attempt ${retryCount + 1}/${maxRetries + 1})`);
-              if (watchId !== null) {
-                navigator.geolocation.clearWatch(watchId);
-              }
-              // Retry with lower accuracy to get faster results
-              setTimeout(() => startTracking(false), 2000);
-            } else {
-              setError('Cannot get GPS location. Click "Use Demo Location" to test the map with simulated location near PUP.');
-              setIsTracking(false);
-            }
+            stoppedRef.current = true;
+            clearExistingWatch();
+          } else if (err?.code === 2) {
+            // Position unavailable
+            setError('Location unavailable. GPS signal may be weak. Try "Use Demo Location" or move to an open area.');
+            // Don't stop tracking - watchPosition will keep trying
+          } else if (err?.code === 3) {
+            // Timeout
+            setError('Getting location is taking longer than usual...');
+            // Don't stop tracking - watchPosition will keep trying
           } else {
-            setError(`Location error: ${error.message}. Try "Use Demo Location" button.`);
-            setIsTracking(false);
+            setError(`Location error: ${err?.message || 'Unknown'}. Try "Use Demo Location" button.`);
           }
         },
-        {
-          enableHighAccuracy: useHighAccuracy,
-          timeout: useHighAccuracy ? 15000 : 20000, // Even longer timeout
-          maximumAge: 60000, // Use cached position up to 60 seconds old
-        }
+        opts
       );
 
+      watchIdRef.current = id;
       setWatchId(id);
+      pushLog(`watchPosition started: id=${id}`);
     };
 
+    // Start tracking immediately
     startTracking();
 
     // Cleanup
     return () => {
-      if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
+      isMounted = false;
+      stoppedRef.current = true;
+      
+      clearExistingWatch();
+      
+      if (userMarkerRef.current) {
+        userMarkerRef.current.setMap(null);
+        userMarkerRef.current = null;
       }
+      if (accuracyCircleRef.current) {
+        accuracyCircleRef.current.setMap(null);
+        accuracyCircleRef.current = null;
+      }
+      firstPositionHandledRef.current = false;
+      pushLog('Tracking cleanup complete');
     };
   }, [map, onLocationUpdate]);
 
@@ -342,8 +385,8 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
         setIsTracking(true);
 
         // Create or update marker
-        if (userMarker) {
-          userMarker.setPosition(userLatLng);
+        if (userMarkerRef.current) {
+          userMarkerRef.current.setPosition(userLatLng);
         } else {
           const marker = new google.maps.Marker({
             position: userLatLng,
@@ -358,6 +401,7 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
               strokeWeight: 3,
             },
           });
+          userMarkerRef.current = marker;
           setUserMarker(marker);
         }
 
@@ -371,9 +415,9 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
         setIsTracking(false);
       },
       {
-        enableHighAccuracy: false, // Use network-based location for faster results
+        enableHighAccuracy: true,
         timeout: 15000,
-        maximumAge: 60000, // Accept cached location up to 1 minute old
+        maximumAge: 0,
       }
     );
   };
@@ -392,8 +436,16 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
     setIsTracking(true);
 
     // Create or update marker
-    if (userMarker) {
-      userMarker.setPosition(demoLocation);
+    if (userMarkerRef.current) {
+      userMarkerRef.current.setPosition(demoLocation);
+      userMarkerRef.current.setIcon({
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 8,
+        fillColor: '#FFA500', // Orange color for demo
+        fillOpacity: 1,
+        strokeColor: '#FFFFFF',
+        strokeWeight: 3,
+      });
     } else {
       const marker = new google.maps.Marker({
         position: demoLocation,
@@ -422,13 +474,18 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
         infoWindow.open(map, marker);
       });
 
+      userMarkerRef.current = marker;
       setUserMarker(marker);
     }
 
     // Create demo accuracy circle
-    if (accuracyCircle) {
-      accuracyCircle.setCenter(demoLocation);
-      accuracyCircle.setRadius(20); // Small radius for demo
+    if (accuracyCircleRef.current) {
+      accuracyCircleRef.current.setCenter(demoLocation);
+      accuracyCircleRef.current.setRadius(20); // Small radius for demo
+      accuracyCircleRef.current.setOptions({
+        strokeColor: '#FFA500',
+        fillColor: '#FFA500',
+      });
     } else {
       const circle = new google.maps.Circle({
         strokeColor: '#FFA500',
@@ -440,6 +497,7 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
         center: demoLocation,
         radius: 20,
       });
+      accuracyCircleRef.current = circle;
       setAccuracyCircle(circle);
     }
 
@@ -494,7 +552,7 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
                     href="https://console.cloud.google.com/apis/library/maps-backend.googleapis.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-4 py-2 bg-blue-600 text-gray-900 rounded-lg hover:bg-blue-700 font-medium text-sm"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm"
                   >
                     Enable Maps API
                   </a>
@@ -533,7 +591,7 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
         {/* Always show Demo Location button for easy testing */}
         <button
           onClick={useDemoLocation}
-          className="px-4 py-2 bg-orange-500 text-gray-900 rounded-lg shadow-lg hover:bg-orange-600 font-medium text-sm"
+          className="px-4 py-2 bg-orange-500 text-white rounded-lg shadow-lg hover:bg-orange-600 font-medium text-sm"
           title="Use a simulated location near PUP campus for testing"
         >
           🎮 Demo Location
@@ -543,7 +601,7 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
         {error && !isTracking && (
           <button
             onClick={retryLocation}
-            className="px-4 py-2 bg-blue-500 text-gray-900 rounded-lg shadow-lg hover:bg-blue-600 font-medium text-sm"
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-lg hover:bg-blue-600 font-medium text-sm"
           >
             🔄 Retry GPS
           </button>
@@ -554,7 +612,7 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
       <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-4 max-w-xs">
         <div className="flex items-center gap-2 mb-2">
           <div className={`w-3 h-3 rounded-full ${isTracking ? 'bg-green-500' : 'bg-red-500'}`} />
-          <span className="font-medium  text-gray-900 text-sm">
+          <span className="font-medium text-gray-900 text-sm">
             {isTracking ? 'Location Tracking Active' : 'Location Tracking Inactive'}
           </span>
         </div>
