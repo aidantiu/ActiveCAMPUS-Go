@@ -237,9 +237,45 @@ export default function RegisterPage() {
             {errors.password && (
               <p className="text-red-500 text-xs mt-1">{errors.password}</p>
             )}
-            <p className="text-xs text-gray-500 mt-1">
-              Must be 8+ characters with uppercase, lowercase, and number
-            </p>
+            {/* Password Strength Checklist */}
+            <div className="mt-1 space-y-1">
+              <div
+                className={`flex items-center text-xs ${
+                  formData.password.match(/[A-Z]/)
+                    ? "text-green-600"
+                    : "text-gray-500"
+                }`}
+              >
+                <span className="mr-1">
+                  {formData.password.match(/[A-Z]/) ? "✓" : "○"}
+                </span>
+                At least 1 uppercase letter
+              </div>
+              <div
+                className={`flex items-center text-xs ${
+                  formData.password.length >= 8
+                    ? "text-green-600"
+                    : "text-gray-500"
+                }`}
+              >
+                <span className="mr-1">
+                  {formData.password.length >= 8 ? "✓" : "○"}
+                </span>
+                Minimum 8 characters
+              </div>
+              <div
+                className={`flex items-center text-xs ${
+                  formData.password.match(/[0-9]/)
+                    ? "text-green-600"
+                    : "text-gray-500"
+                }`}
+              >
+                <span className="mr-1">
+                  {formData.password.match(/[0-9]/) ? "✓" : "○"}
+                </span>
+                At least 1 number
+              </div>
+            </div>
           </div>
 
           {/* Confirm Password Input */}
