@@ -1,16 +1,19 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { validateEmail, checkRateLimit } from '@/lib/validation';
+import introBg from "../../assets/intro_bg.svg";
+import logo from '../../assets/activecampus_logo.svg';
+import groupStudents from '../../assets/group_students.svg';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { validateEmail, checkRateLimit } from "@/lib/validation";
 
 export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
@@ -18,10 +21,10 @@ export default function LoginPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
@@ -29,8 +32,9 @@ export default function LoginPage() {
     e.preventDefault();
 
     // Rate limiting check
-    if (!checkRateLimit('login', 5, 300000)) { // 5 attempts per 5 minutes
-      setErrors({ form: 'Too many login attempts. Please try again later.' });
+    if (!checkRateLimit("login", 5, 300000)) {
+      // 5 attempts per 5 minutes
+      setErrors({ form: "Too many login attempts. Please try again later." });
       return;
     }
 
@@ -42,7 +46,7 @@ export default function LoginPage() {
     }
 
     if (!formData.password) {
-      setErrors({ password: 'Password is required' });
+      setErrors({ password: "Password is required" });
       return;
     }
 
@@ -58,26 +62,28 @@ export default function LoginPage() {
       );
 
       // Wait a moment for auth state to propagate
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       // Redirect to choose campus
-      router.push('/choose-map');
+      router.push("/choose-map");
     } catch (error: any) {
-      console.error('Login error:', error);
-      
+      console.error("Login error:", error);
+
       // Handle specific Firebase errors
-      if (error.code === 'auth/user-not-found') {
-        setErrors({ email: 'No account found with this email' });
-      } else if (error.code === 'auth/wrong-password') {
-        setErrors({ password: 'Incorrect password' });
-      } else if (error.code === 'auth/invalid-email') {
-        setErrors({ email: 'Invalid email address' });
-      } else if (error.code === 'auth/user-disabled') {
-        setErrors({ form: 'This account has been disabled' });
-      } else if (error.code === 'auth/too-many-requests') {
-        setErrors({ form: 'Too many failed attempts. Please try again later.' });
+      if (error.code === "auth/user-not-found") {
+        setErrors({ email: "No account found with this email" });
+      } else if (error.code === "auth/wrong-password") {
+        setErrors({ password: "Incorrect password" });
+      } else if (error.code === "auth/invalid-email") {
+        setErrors({ email: "Invalid email address" });
+      } else if (error.code === "auth/user-disabled") {
+        setErrors({ form: "This account has been disabled" });
+      } else if (error.code === "auth/too-many-requests") {
+        setErrors({
+          form: "Too many failed attempts. Please try again later.",
+        });
       } else {
-        setErrors({ form: 'Login failed. Please check your credentials.' });
+        setErrors({ form: "Login failed. Please check your credentials." });
       }
     } finally {
       setLoading(false);
@@ -85,13 +91,26 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+    <div
+      className="min-h-screen flex items-center justify-center"
+      style={{ backgroundImage: `url(${introBg.src})`,
+    backgroundSize: "cover", }}
+    >
+      <div className="flex flex-col justify-center items-center">
+        <img
+          src={logo.src}
+          alt="ActiveCampus GO Logo"
+          className="w-[700px] h-auto mb-6 absolute -top-15 md:-top-30 md:left-30"
+        />
+        <img
+          src={groupStudents.src}
+          alt=""
+          className="w-[400px] h-auto absolute top-80 left-70 hidden md:block"
+        />
+      </div>
+      <div className="bg-[#dfd2e9]/80 rounded-2xl shadow-2xl max-w-md p-8 mx-3 absolute top-65 md:right-65 md:top-30">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-indigo-600 mb-2">
-            🔥 ActiveCAMPUS GO
-          </h1>
           <p className="text-gray-600">Welcome back! Log in to continue</p>
         </div>
 
@@ -99,7 +118,10 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email Input */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Email Address
             </label>
             <input
@@ -108,8 +130,8 @@ export default function LoginPage() {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-900 focus:border-transparent ${
-                errors.email ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#c9f2bb] text-gray-900 focus:border-transparent ${
+                errors.email ? "border-red-500" : "border-gray-800"
               }`}
               placeholder="your.email@example.com"
               disabled={loading}
@@ -122,18 +144,21 @@ export default function LoginPage() {
 
           {/* Password Input */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Password
             </label>
             <div className="relative">
               <input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 id="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 text-gray-900 focus:border-transparent ${
-                  errors.password ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#c9f2bb] text-gray-900 focus:border-transparent ${
+                  errors.password ? "border-red-500" : "border-gray-800"
                 }`}
                 placeholder="••••••••"
                 disabled={loading}
@@ -144,7 +169,7 @@ export default function LoginPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
+                {showPassword ? "👁️" : "👁️‍🗨️"}
               </button>
             </div>
             {errors.password && (
@@ -154,7 +179,10 @@ export default function LoginPage() {
 
           {/* Forgot Password Link */}
           <div className="text-right">
-            <a href="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-800">
+            <a
+              href="/forgot-password"
+              className="text-sm text-[#8ac1e3] hover:text-[#71a2c1]"
+            >
               Forgot password?
             </a>
           </div>
@@ -170,24 +198,27 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-gray-900 font-bold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-[#8ac1e3] hover:bg-[#71a2c1] text-gray-900 font-bold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Logging in...' : 'Log In'}
+            {loading ? "Logging in..." : "Log In"}
           </button>
         </form>
 
         {/* Register Link */}
         <div className="mt-6 text-center">
           <p className="text-gray-600 text-sm">
-            Don't have an account?{' '}
-            <a href="/register" className="text-indigo-600 hover:text-indigo-800 font-medium">
+            Don't have an account?{" "}
+            <a
+              href="/register"
+              className="text-[#8ac1e3] hover:text-[#71a2c1] font-medium"
+            >
               Register here
             </a>
           </p>
         </div>
 
         {/* Security Notice */}
-        <div className="mt-6 p-3 bg-gray-50 rounded-lg">
+        <div className="mt-6 p-3 bg-gray-200/50 rounded-lg">
           <p className="text-xs text-gray-600 text-center">
             🔒 Secure login powered by Firebase Authentication
           </p>
