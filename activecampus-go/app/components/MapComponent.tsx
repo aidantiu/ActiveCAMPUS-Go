@@ -34,9 +34,24 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
           return;
         }
 
-        // Check if script already loaded
-        if (typeof google !== 'undefined') {
+        // Check if Google Maps is already fully loaded
+        if (typeof google !== 'undefined' && google.maps && google.maps.Map) {
           createMap();
+          return;
+        }
+
+        // Check if script is already being loaded
+        const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+        if (existingScript) {
+          // Script already exists, wait for it to load
+          existingScript.addEventListener('load', () => {
+            // Wait a bit for Google Maps to fully initialize
+            setTimeout(() => {
+              if (typeof google !== 'undefined' && google.maps && google.maps.Map) {
+                createMap();
+              }
+            }, 500);
+          });
           return;
         }
 
@@ -47,27 +62,20 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
         script.defer = true;
         
         script.onload = () => {
-          createMap();
+          // Wait for Google Maps to fully initialize
+          setTimeout(() => {
+            if (typeof google !== 'undefined' && google.maps && google.maps.Map) {
+              createMap();
+            } else {
+              setMapError('Google Maps failed to initialize properly. Please refresh the page.');
+            }
+          }, 500);
         };
 
         script.onerror = (e) => {
           console.error('Google Maps script load error:', e);
           setMapError('Failed to load Google Maps. Please check your API key and internet connection.');
         };
-
-        // Listen for Google Maps API errors
-        window.addEventListener('error', (e) => {
-          if (e.message && e.message.includes('Google Maps')) {
-            console.error('Google Maps API error:', e);
-            if (e.message.includes('ApiNotActivatedMapError')) {
-              setMapError('Maps JavaScript API not enabled. Please enable it in Google Cloud Console. See GOOGLE_MAPS_SETUP.md for instructions.');
-            } else if (e.message.includes('RefererNotAllowedMapError')) {
-              setMapError('API key referrer restrictions prevent localhost access. Check your API key settings.');
-            } else if (e.message.includes('ApiTargetBlockedMapError')) {
-              setMapError('Maps JavaScript API is blocked. Check API key restrictions in Google Cloud Console.');
-            }
-          }
-        });
 
         document.head.appendChild(script);
       } catch (error) {
@@ -77,7 +85,7 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
     };
 
     const createMap = () => {
-      if (mapRef.current && typeof google !== 'undefined') {
+      if (mapRef.current && typeof google !== 'undefined' && google.maps && google.maps.Map) {
         // Create map centered on PUP Campus
         const mapInstance = new google.maps.Map(mapRef.current, {
           center: PUP_CAMPUS,
@@ -486,7 +494,7 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
                     href="https://console.cloud.google.com/apis/library/maps-backend.googleapis.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm"
+                    className="px-4 py-2 bg-blue-600 text-gray-900 rounded-lg hover:bg-blue-700 font-medium text-sm"
                   >
                     Enable Maps API
                   </a>
@@ -511,31 +519,34 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
         <button
           onClick={centerOnUser}
           disabled={!userLocation}
-          className="px-4 py-2 bg-white rounded-lg shadow-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+          className="px-4 py-2 bg-white rounded-lg shadow-lg hover:bg-gray-50 text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
         >
           📍 My Location
         </button>
         <button
           onClick={centerOnPUP}
-          className="px-4 py-2 bg-white rounded-lg shadow-lg hover:bg-gray-50 font-medium text-sm"
+          className="px-4 py-2 bg-white rounded-lg shadow-lg hover:bg-gray-50 text-gray-900 font-medium text-sm"
         >
           🏫 PUP Campus
         </button>
+        
+        {/* Always show Demo Location button for easy testing */}
+        <button
+          onClick={useDemoLocation}
+          className="px-4 py-2 bg-orange-500 text-gray-900 rounded-lg shadow-lg hover:bg-orange-600 font-medium text-sm"
+          title="Use a simulated location near PUP campus for testing"
+        >
+          🎮 Demo Location
+        </button>
+        
+        {/* Show retry button only when there's an error */}
         {error && !isTracking && (
-          <>
-            <button
-              onClick={retryLocation}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-lg hover:bg-blue-600 font-medium text-sm"
-            >
-              🔄 Retry GPS
-            </button>
-            <button
-              onClick={useDemoLocation}
-              className="px-4 py-2 bg-orange-500 text-white rounded-lg shadow-lg hover:bg-orange-600 font-medium text-sm"
-            >
-              🎮 Use Demo Location
-            </button>
-          </>
+          <button
+            onClick={retryLocation}
+            className="px-4 py-2 bg-blue-500 text-gray-900 rounded-lg shadow-lg hover:bg-blue-600 font-medium text-sm"
+          >
+            🔄 Retry GPS
+          </button>
         )}
       </div>
 
@@ -543,7 +554,7 @@ export default function MapComponent({ onLocationUpdate }: MapComponentProps) {
       <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-4 max-w-xs">
         <div className="flex items-center gap-2 mb-2">
           <div className={`w-3 h-3 rounded-full ${isTracking ? 'bg-green-500' : 'bg-red-500'}`} />
-          <span className="font-medium text-sm">
+          <span className="font-medium  text-gray-900 text-sm">
             {isTracking ? 'Location Tracking Active' : 'Location Tracking Inactive'}
           </span>
         </div>

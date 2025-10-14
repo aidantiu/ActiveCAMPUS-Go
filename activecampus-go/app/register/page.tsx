@@ -99,8 +99,11 @@ export default function RegisterPage() {
         email: sanitizedEmail,
       });
 
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // Wait a moment for auth state to propagate
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Redirect to choose campus
+      router.push('/choose-map');
     } catch (error: any) {
       console.error('Registration error:', error);
       
@@ -247,7 +250,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-gray-900 font-bold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Creating Account...' : 'Create Account'}
           </button>

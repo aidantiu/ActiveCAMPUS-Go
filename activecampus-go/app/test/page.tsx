@@ -142,14 +142,14 @@ export default function TestPage() {
           <div className="flex gap-4 mb-8">
             <button
               onClick={testFirebaseConnection}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+              className="bg-indigo-600 hover:bg-indigo-700 text-gray-900 font-bold py-3 px-6 rounded-lg transition-colors"
               disabled={loading}
             >
               🔄 Run All Tests
             </button>
             <button
               onClick={testUpdateSteps}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+              className="bg-green-600 hover:bg-green-700 text-gray-900 font-bold py-3 px-6 rounded-lg transition-colors"
               disabled={loading || !userId}
             >
               🚶 Test Step Update

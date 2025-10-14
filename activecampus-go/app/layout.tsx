@@ -1,6 +1,8 @@
+
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { AuthProvider } from "./components/AuthProvider";
 
 const kenneyFont = localFont({
   src: '../public/fonts/Kenney Mini.ttf',
@@ -21,7 +23,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={kenneyFont.variable}>
       <body className={kenneyFont.className}>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
