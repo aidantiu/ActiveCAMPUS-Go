@@ -35,6 +35,15 @@ export const DEFAULT_CHALLENGES: Challenge[] = [
     lng: 121.0100,
     reward: 40,
   },
+
+  {
+    id: 'test',
+    title: 'Café Break',
+    description: 'Visit the campus café for a refreshing break.',
+    lat: 14.5995,
+    lng: 121.0105,
+    reward: 20,
+  }
 ];
 
 // Small helper that returns a template for an InfoWindow's content as a string.
