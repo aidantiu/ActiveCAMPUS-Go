@@ -75,6 +75,7 @@ export default function Sidebar() {
           className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 ${
             sidebarOpen ? '' : 'justify-center'
           }`}
+          onClick={() => router.push('/leaderboards')}
         >
           <span className="text-2xl">🏆</span>
           <span className={`${sidebarOpen ? '' : 'hidden'} font-medium`}>Leaderboard</span>
@@ -84,6 +85,7 @@ export default function Sidebar() {
           className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 ${
             sidebarOpen ? '' : 'justify-center'
           }`}
+          onClick={() => router.push('/character_customization')}
         >
           <span className="text-2xl">👤</span>
           <span className={`${sidebarOpen ? '' : 'hidden'} font-medium`}>Profile</span>
