@@ -1,36 +1,40 @@
-'use client';
-import IntroBg from '../assets/intro_bg.svg';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { createUser } from '@/lib/firestore';
-import { 
-  validateEmail, 
-  validateUsername, 
+"use client";
+import IntroBg from "../assets/intro_bg.svg";
+import logo from "../assets/activecampus_logo.svg";
+import groupStudents from "../assets/group_students.svg";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { createUser } from "@/lib/firestore";
+import {
+  validateEmail,
+  validateUsername,
   validatePassword,
   sanitizeInput,
-  checkRateLimit 
-} from '@/lib/validation';
+  checkRateLimit,
+} from "@/lib/validation";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    email: '',
-    username: '',
-    password: '',
-    confirmPassword: '',
+    email: "",
+    username: "",
+    password: "",
+    confirmPassword: "",
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
@@ -57,7 +61,7 @@ export default function RegisterPage() {
 
     // Check password confirmation
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
     setErrors(newErrors);
@@ -68,8 +72,11 @@ export default function RegisterPage() {
     e.preventDefault();
 
     // Rate limiting check
-    if (!checkRateLimit('registration', 3, 300000)) { // 3 attempts per 5 minutes
-      setErrors({ form: 'Too many registration attempts. Please try again later.' });
+    if (!checkRateLimit("registration", 3, 300000)) {
+      // 3 attempts per 5 minutes
+      setErrors({
+        form: "Too many registration attempts. Please try again later.",
+      });
       return;
     }
 
@@ -100,22 +107,22 @@ export default function RegisterPage() {
       });
 
       // Wait a moment for auth state to propagate
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       // Redirect to choose campus
-      router.push('/choose-map');
+      router.push("/choose-map");
     } catch (error: any) {
-      console.error('Registration error:', error);
-      
+      console.error("Registration error:", error);
+
       // Handle specific Firebase errors
-      if (error.code === 'auth/email-already-in-use') {
-        setErrors({ email: 'This email is already registered' });
-      } else if (error.code === 'auth/invalid-email') {
-        setErrors({ email: 'Invalid email address' });
-      } else if (error.code === 'auth/weak-password') {
-        setErrors({ password: 'Password is too weak' });
+      if (error.code === "auth/email-already-in-use") {
+        setErrors({ email: "This email is already registered" });
+      } else if (error.code === "auth/invalid-email") {
+        setErrors({ email: "Invalid email address" });
+      } else if (error.code === "auth/weak-password") {
+        setErrors({ password: "Password is too weak" });
       } else {
-        setErrors({ form: 'Registration failed. Please try again.' });
+        setErrors({ form: "Registration failed. Please try again." });
       }
     } finally {
       setLoading(false);
@@ -124,14 +131,33 @@ export default function RegisterPage() {
 
   return (
     <div
-      className="h-screen w-screen bg-cover bg-center bg-no-repeat flex items-center justify-center"
-      style={{ backgroundImage: `url(${IntroBg.src})` }}>
-      <div className="bg-[#dfd2e9]/40 rounded-2xl shadow-2xl w-full max-w-md p-8">
+      className="h-screen w-screen bg-cover bg-center bg-no-repeat flex flex-col md:flex-row items-center justify-evenly p-6"
+      style={{
+        backgroundImage: `url(${IntroBg.src})`,
+        backgroundSize: "cover",
+      }}
+    >
+      <div className="flex flex-col justify-center items-center">
+        <img
+          src={logo.src}
+          alt="ActiveCampus GO Logo"
+          className="w-[700px] h-auto mb-6 absolute -top-15 md:-top-30 md:left-30"
+        />
+        <img
+          src={groupStudents.src}
+          alt=""
+          className="w-[400px] h-auto top-80 left-70 hidden md:block md:absolute"
+        />
+      </div>
+      <div className="bg-[#dfd2e9]/80 rounded-2xl shadow-2xl max-w-md p-8 mx-3 top-55 absolute md:right-60 md:top-20">
         {/* Registration Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email Input */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Email Address
             </label>
             <input
@@ -141,7 +167,7 @@ export default function RegisterPage() {
               value={formData.email}
               onChange={handleChange}
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#c9f2bb] focus:border-transparent text-gray-800 ${
-                errors.email ? 'border-red-500' : 'border-gray-800'
+                errors.email ? "border-red-500" : "border-gray-800"
               }`}
               placeholder="your.email@example.com"
               disabled={loading}
@@ -154,7 +180,10 @@ export default function RegisterPage() {
 
           {/* Username Input */}
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Username
             </label>
             <input
@@ -164,7 +193,7 @@ export default function RegisterPage() {
               value={formData.username}
               onChange={handleChange}
               className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#c9f2bb] focus:border-transparent text-gray-800 ${
-                errors.username ? 'border-red-500' : 'border-gray-800'
+                errors.username ? "border-red-500" : "border-gray-800"
               }`}
               placeholder="your_username"
               disabled={loading}
@@ -177,18 +206,21 @@ export default function RegisterPage() {
 
           {/* Password Input */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Password
             </label>
             <div className="relative">
               <input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 id="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
                 className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#c9f2bb] focus:border-transparent text-gray-800 ${
-                  errors.password ? 'border-red-500' : 'border-gray-800'
+                  errors.password ? "border-red-500" : "border-gray-800"
                 }`}
                 placeholder="••••••••"
                 disabled={loading}
@@ -199,7 +231,7 @@ export default function RegisterPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
+                {showPassword ? "👁️" : "👁️‍🗨️"}
               </button>
             </div>
             {errors.password && (
@@ -212,24 +244,29 @@ export default function RegisterPage() {
 
           {/* Confirm Password Input */}
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Confirm Password
             </label>
             <input
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               id="confirmPassword"
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#c9f2bb] focus:border-transparent text-gray-800${
-                errors.confirmPassword ? 'border-red-500' : 'border-gray-800'
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#c9f2bb] focus:border-transparent text-gray-800 ${
+                errors.confirmPassword ? "border-red-500" : "border-gray-800"
               }`}
               placeholder="••••••••"
               disabled={loading}
               autoComplete="new-password"
             />
             {errors.confirmPassword && (
-              <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
+              <p className="text-red-500 text-xs mt-1">
+                {errors.confirmPassword}
+              </p>
             )}
           </div>
 
@@ -244,26 +281,30 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-gray-900 font-bold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-[#8ac1e3] hover:bg-[#71a2c1] text-gray-900 font-bold py-3 px-4 rounded-lg transition-colors ease-in-out duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 
         {/* Login Link */}
         <div className="mt-6 text-center">
           <p className="text-gray-600 text-sm">
-            Already have an account?{' '}
-            <a href="/login" className="text-indigo-600 hover:text-indigo-800 font-medium">
+            Already have an account?{" "}
+            <a
+              href="/login"
+              className="text-[#8ac1e3] hover:text-[#71a2c1] font-medium"
+            >
               Log in here
             </a>
           </p>
         </div>
 
         {/* Security Notice */}
-        <div className="mt-6 p-3 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-600 text-center">
-            🔒 Your data is encrypted and secure. We never share your information.
+        <div className="mt-6 p-3 bg-gray-200/50 rounded-lg">
+          <p className="text-xs text-gray-800 text-center">
+            🔒 Your data is encrypted and secure. We never share your
+            information.
           </p>
         </div>
       </div>
