@@ -1,14 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from './AuthProvider';
 import Image from 'next/image';
 
 export default function Sidebar() {
   const { signOut, user } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Check if we're on the dashboard page
+  const isDashboard = pathname === '/dashboard';
 
   // Load sidebar state from localStorage
   useEffect(() => {
@@ -33,15 +37,15 @@ export default function Sidebar() {
 
   return (
     <aside
-      className={`bg-white border-r border-gray-200 z-20 transform transition-width duration-200 ease-in-out flex flex-col relative h-screen ${
+      className={`border-r border-gray-200 transform transition-width duration-200 ease-in-out flex flex-col relative h-screen ${
         sidebarOpen ? 'w-64' : 'w-16'
-      }`}
+      } ${isDashboard ? 'bg-white bg-opacity-50 backdrop-blur-md' : 'bg-white'}`}
     >
-      {/* Collapse button - positioned absolutely inside */}
+      {/* Collapse button */}
       <button
         aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="absolute top-2 right-2 z-30 p-1.5 bg-gray-100 border border-gray-300 rounded-md shadow-sm hover:bg-gray-200 transition-colors"
+        className="absolute top-2 right-2 z-30 p-1.5 bg-white bg-opacity-80 border border-gray-300 rounded-md shadow-sm hover:bg-opacity-100 transition-colors"
       >
         <svg
           className={`w-3 h-3 fill-gray-600 transform transition-transform ${sidebarOpen ? '' : 'rotate-180'}`}
@@ -54,8 +58,10 @@ export default function Sidebar() {
         </svg>
       </button>
 
-      {/* Logo header - now takes full space */}
-      <div className="flex items-center justify-center px-1 py-3 border-b border-gray-100 bg-white">
+      {/* Logo header */}
+      <div className={`flex items-center justify-center px-1 py-3 border-b border-gray-200 ${
+        isDashboard ? 'bg-white bg-opacity-80' : 'bg-white'
+      }`}>
         <Image 
           src="/icons/activecampus-logo.svg" 
           alt="ActiveCAMPUS" 
@@ -66,12 +72,11 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 overflow-auto p-2 space-y-1 text-gray-900">
-
         <button
           onClick={() => router.push('/dashboard')}
-          className={`w-full text-left flex items-center gap-3 px-3 py-3 rounded-md hover:bg-gray-100 ${
-            sidebarOpen ? '' : 'justify-center'
-          }`}
+          className={`w-full text-left flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
+            isDashboard ? 'hover:bg-white hover:bg-opacity-60' : 'hover:bg-gray-100'
+          } ${sidebarOpen ? '' : 'justify-center'}`}
         >
           <Image 
             src="/icons/map-icon.png" 
@@ -84,11 +89,10 @@ export default function Sidebar() {
         </button>
 
         <button
-          onClick={() => router.push('/leaderboard')}
-          className={`w-full text-left flex items-center gap-3 px-3 py-3 rounded-md hover:bg-gray-100 ${
-            sidebarOpen ? '' : 'justify-center'
-          }`}
           onClick={() => router.push('/leaderboards')}
+          className={`w-full text-left flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
+            isDashboard ? 'hover:bg-white hover:bg-opacity-60' : 'hover:bg-gray-100'
+          } ${sidebarOpen ? '' : 'justify-center'}`}
         >
           <Image 
             src="/icons/trophy-icon.png" 
@@ -101,9 +105,9 @@ export default function Sidebar() {
         </button>
 
         <button
-          className={`w-full text-left flex items-center gap-3 px-3 py-3 rounded-md hover:bg-gray-100 ${
-            sidebarOpen ? '' : 'justify-center'
-          }`}
+          className={`w-full text-left flex items-center gap-3 px-3 py-3 rounded-md transition-colors ${
+            isDashboard ? 'hover:bg-white hover:bg-opacity-60' : 'hover:bg-gray-100'
+          } ${sidebarOpen ? '' : 'justify-center'}`}
           onClick={() => router.push('/character_customization')}
         >
           <Image 
@@ -118,15 +122,17 @@ export default function Sidebar() {
       </nav>
 
       {/* Sign out at bottom */}
-      <div className="border-t border-gray-100 p-2 bg-white">
+      <div className={`border-t border-gray-200 p-2 ${
+        isDashboard ? 'bg-white bg-opacity-80' : 'bg-white'
+      }`}>
         <button
           onClick={async () => {
             await signOut();
             router.push('/login');
           }}
-          className={`w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm text-red-600 hover:bg-red-50 ${
-            sidebarOpen ? '' : 'justify-center'
-          }`}
+          className={`w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm text-red-600 transition-colors ${
+            isDashboard ? 'hover:bg-white hover:bg-opacity-70' : 'hover:bg-red-50'
+          } ${sidebarOpen ? '' : 'justify-center'}`}
         >
           <Image 
             src="/icons/logout-icon.png" 
