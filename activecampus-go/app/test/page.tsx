@@ -44,8 +44,8 @@ export default function TestPage() {
       setStatus('Test 2: Creating test user...');
       await createUser(uid, {
         displayName: 'Test Student',
-        email: 'test@pup.edu.ph',
-        department: 'College of Engineering',
+        email: 'test@example.com',
+        school: 'Polytechnic University of the Philippines',
       });
       addResult('Create User', true, { uid });
 
