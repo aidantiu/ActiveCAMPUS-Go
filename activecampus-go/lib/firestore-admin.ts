@@ -113,3 +113,24 @@ export const updateUserSteps = async (uid: string, steps: number) => {
   }
   return null;
 };
+
+// Leaderboard (server-side with Admin SDK)
+export const getLeaderboard = async (limitCount: number = 50) => {
+  try {
+    const usersRef = adminDb.collection('users');
+    const snapshot = await usersRef
+      .orderBy('campusEnergy', 'desc')
+      .limit(limitCount)
+      .get();
+    
+    const users: User[] = [];
+    snapshot.forEach(doc => {
+      users.push(doc.data() as User);
+    });
+    
+    return users;
+  } catch (error) {
+    console.error('Error fetching leaderboard:', error);
+    throw error;
+  }
+};

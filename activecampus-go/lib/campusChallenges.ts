@@ -58,32 +58,24 @@ export const challengeInfoWindowTemplate = (ch: Challenge, prox: boolean, claime
     </div>
   </div>`;
 
-// Returns a set of programmatic google.maps.Symbol icons for challenge markers.
+// Returns a set of icon configurations for challenge markers using map-icon.png
 export const buildChallengeIcons = (google: typeof window.google) => ({
   default: {
-    path: google.maps.SymbolPath.CIRCLE,
-    scale: 8,
-    fillColor: '#8B0000',
-    fillOpacity: 1,
-    strokeColor: '#FFFFFF',
-    strokeWeight: 2,
-  } as google.maps.Symbol,
+    url: '/icons/map-icon.png',
+    scaledSize: new google.maps.Size(50, 50),
+    anchor: new google.maps.Point(16, 32),
+  } as google.maps.Icon,
   nearby: {
-    path: google.maps.SymbolPath.CIRCLE,
-    scale: 10,
-    fillColor: '#FFA500',
-    fillOpacity: 1,
-    strokeColor: '#FFFFFF',
-    strokeWeight: 3,
-  } as google.maps.Symbol,
+    url: '/icons/map-icon.png',
+    scaledSize: new google.maps.Size(50, 50),
+    anchor: new google.maps.Point(20, 40),
+  } as google.maps.Icon,
   claimed: {
-    path: google.maps.SymbolPath.CIRCLE,
-    scale: 8,
-    fillColor: '#6B7280',
-    fillOpacity: 1,
-    strokeColor: '#FFFFFF',
-    strokeWeight: 2,
-  } as google.maps.Symbol,
+    url: '/icons/map-icon.png',
+    scaledSize: new google.maps.Size(50, 50),
+    anchor: new google.maps.Point(16, 32),
+    opacity: 0.5,
+  } as google.maps.Icon,
 });
 
 // Create markers for provided challenges on the given map and return an id->marker map.

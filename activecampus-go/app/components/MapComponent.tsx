@@ -605,16 +605,6 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
             setIsTracking(false);
             stoppedRef.current = true;
             clearExistingWatch();
-          } else if (err?.code === 2) {
-            // Position unavailable
-            setError('Try to "Use Demo Location" or move to an open area.');
-            // Don't stop tracking - watchPosition will keep trying
-          } else if (err?.code === 3) {
-            // Timeout
-            setError('Getting location is taking longer than usual...');
-            // Don't stop tracking - watchPosition will keep trying
-          } else {
-            setError(`Location error: ${err?.message || 'Unknown'}. Try "Use Demo Location" button.`);
           }
         },
         opts
@@ -730,7 +720,6 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
 
   pushLog('Using demo location (simulated)');
   setUserLocation(demoLocation);
-  setError('Using demo location near PUP campus for testing');
     setIsTracking(true);
 
     // Create or update marker
@@ -873,13 +862,6 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
       {/* Controls */}
       <div className="absolute top-4 right-4 flex flex-col gap-2">
         <button
-          onClick={centerOnUser}
-          disabled={!userLocation}
-          className="px-4 py-2 bg-white rounded-lg shadow-lg hover:bg-gray-50 text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
-        >
-          📍 My Location
-        </button>
-        <button
           onClick={centerOnPUP}
           className="px-4 py-2 bg-white rounded-lg shadow-lg hover:bg-gray-50 text-gray-900 font-medium text-sm"
         >
@@ -906,41 +888,44 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
         )}
       </div>
 
-      {/* Status Display */}
-      <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-4 max-w-xs">
-        <div className="flex items-center gap-2 mb-2">
-          <div className={`w-3 h-3 rounded-full ${isTracking ? 'bg-green-500' : 'bg-red-500'}`} />
-          <span className="font-medium text-gray-900 text-sm">
-            {isTracking ? 'Location Tracking Active' : 'Location Tracking Inactive'}
-          </span>
-        </div>
-        
-        {/* Campus Energy Display */}
-        {userProfile && (
-          <div className="mt-3 pt-3 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600">Campus Energy:</span>
-              <span className="text-sm font-bold text-blue-600">{userProfile.campusEnergy} CE</span>
-            </div>
-            <div className="flex items-center justify-between mt-1">
-              <span className="text-xs text-gray-600">Level:</span>
-              <span className="text-sm font-semibold text-purple-600">{userProfile.level}</span>
-            </div>
-            <div className="flex items-center justify-between mt-1">
-              <span className="text-xs text-gray-600">Quests Completed:</span>
-              <span className="text-sm font-semibold text-green-600">{userProfile.completedChallenges?.length || 0}</span>
-            </div>
+      {/* Bottom Info Containers */}
+      <div className="absolute bottom-4 left-4 flex gap-4">
+        {/* Status Display */}
+        <div className="bg-white rounded-lg shadow-lg p-4 max-w-xs">
+          <div className="flex items-center gap-2 mb-2">
+            <div className={`w-3 h-3 rounded-full ${isTracking ? 'bg-green-500' : 'bg-red-500'}`} />
+            <span className="font-medium text-gray-900 text-sm">
+              {isTracking ? 'Location Tracking Active' : 'Location Tracking Inactive'}
+            </span>
           </div>
-        )}
-        
-        {error && (
-          <p className="text-red-600 text-xs mt-2">{error}</p>
-        )}
+          
+          {/* Quests Completed Display */}
+          {userProfile && (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-600">Quests Completed:</span>
+                <span className="text-sm font-semibold text-green-600">{userProfile.completedChallenges?.length || 0}</span>
+              </div>
+            </div>
+          )}
+          
+          {error && (
+            <p className="text-red-600 text-xs mt-2">{error}</p>
+          )}
 
-        {userLocation && (
-          <div className="text-xs text-gray-600 mt-2 space-y-1">
-            <p>Latitude: {userLocation.lat.toFixed(6)}</p>
-            <p>Longitude: {userLocation.lng.toFixed(6)}</p>
+          {userLocation && (
+            <div className="text-xs text-gray-600 mt-2 space-y-1">
+              <p>Latitude: {userLocation.lat.toFixed(6)}</p>
+              <p>Longitude: {userLocation.lng.toFixed(6)}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Campus Energy Display - Separate Container */}
+        {userProfile && (
+          <div className="bg-white rounded-lg shadow-lg p-4 w-fit self-center">
+            <div className="text-xs text-gray-600 font-medium">Campus Energy</div>
+            <div className="text-2xl font-bold text-gray-900 whitespace-nowrap">{userProfile.campusEnergy} CE</div>
           </div>
         )}
       </div>

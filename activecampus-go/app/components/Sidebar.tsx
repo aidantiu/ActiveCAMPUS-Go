@@ -68,6 +68,23 @@ export default function Sidebar() {
       <nav className="flex-1 overflow-auto p-2 space-y-1 text-gray-900">
 
         <button
+          onClick={() => router.push('/dashboard')}
+          className={`w-full text-left flex items-center gap-3 px-3 py-3 rounded-md hover:bg-gray-100 ${
+            sidebarOpen ? '' : 'justify-center'
+          }`}
+        >
+          <Image 
+            src="/icons/map-icon.png" 
+            alt="Map" 
+            width={28} 
+            height={28}
+            className="pixelated"
+          />
+          <span className={`${sidebarOpen ? '' : 'hidden'} font-medium text-base`}>Map</span>
+        </button>
+
+        <button
+          onClick={() => router.push('/leaderboard')}
           className={`w-full text-left flex items-center gap-3 px-3 py-3 rounded-md hover:bg-gray-100 ${
             sidebarOpen ? '' : 'justify-center'
           }`}

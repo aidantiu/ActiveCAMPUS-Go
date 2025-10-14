@@ -161,17 +161,6 @@ export default function ChooseMapPage() {
           </div>
         </div>
 
-        {/* Info Box */}
-        <div className="mt-12 bg-white rounded-xl shadow-md p-6 text-center">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <h3 className="text-lg font-bold text-gray-900">How It Works</h3>
-          </div>
-          <p className="text-gray-600">
-            Select your campus to start tracking your steps, earning Campus Energy (CE), 
-            and exploring your university! More campuses will be added soon.
-          </p>
-        </div>
-
         {/* Sign Out Button */}
         <div className="mt-6 text-center">
           <button
