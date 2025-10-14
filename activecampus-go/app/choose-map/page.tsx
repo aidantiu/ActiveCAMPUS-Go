@@ -70,19 +70,19 @@ export default function ChooseMapPage() {
         </div>
 
         {/* Campus Options Grid */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 items-stretch">
           {/* PUP Sta Mesa Campus - Available */}
           <button
             onClick={() => router.push('/dashboard')}
-            className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 overflow-hidden"
+            className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 overflow-hidden h-full flex flex-col"
           >
-            {/* Background Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            {/* Background Gradient - Changed to maroon */}
+            <div className="absolute inset-0 bg-gradient-to-br from-red-800 to-red-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             
             {/* Content */}
-            <div className="relative p-8">
-              {/* PUP Icon */}
-              <div className="mb-4 flex justify-center transform group-hover:scale-110 transition-transform duration-300">
+            <div className="relative p-8 flex flex-col flex-1">
+              {/* PUP Icon - Fixed height container */}
+              <div className="mb-4 flex justify-center transform group-hover:scale-110 transition-transform duration-300 h-28 items-center">
                 <Image
                   src="/icons/pup-logo.svg"
                   alt="PUP Logo"
@@ -98,18 +98,18 @@ export default function ChooseMapPage() {
               </h2>
               
               {/* Subtitle */}
-              <p className="text-gray-600 group-hover:text-blue-100 transition-colors duration-300 mb-4">
+              <p className="text-gray-600 group-hover:text-red-100 transition-colors duration-300 mb-4">
                 Main Campus
               </p>
               
               {/* Status Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 group-hover:bg-white text-green-700 group-hover:text-green-600 rounded-full text-sm font-semibold transition-colors duration-300">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 group-hover:bg-white text-green-700 group-hover:text-green-600 rounded-full text-sm font-semibold transition-colors duration-300 self-start">
                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                 Available Now
               </div>
               
               {/* Arrow Icon */}
-              <div className="absolute top-8 right-8 text-gray-400 group-hover:text-gray-900 transition-all duration-300 transform group-hover:translate-x-1">
+              <div className="absolute top-8 right-8 text-gray-400 group-hover:text-white transition-all duration-300 transform group-hover:translate-x-1">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -117,16 +117,22 @@ export default function ChooseMapPage() {
             </div>
           </button>
 
-          {/* Coming Soon Campus 1 */}
-          <div className="relative bg-white rounded-2xl shadow-lg overflow-hidden opacity-60 cursor-not-allowed">
+          {/* Coming Soon Campus */}
+          <div className="relative bg-white rounded-2xl shadow-lg overflow-hidden opacity-60 cursor-not-allowed h-full flex flex-col">
             {/* Disabled Overlay */}
             <div className="absolute inset-0 bg-gray-900 opacity-5 z-10"></div>
             
             {/* Content */}
-            <div className="relative p-8">
-              {/* Icon */}
-              <div className="text-6xl mb-4 grayscale">
-                🏫
+            <div className="relative p-8 flex flex-col flex-1">
+              {/* Coming Soon Icon - Fixed height container to match PUP icon */}
+              <div className="mb-4 flex justify-center grayscale h-28 items-center">
+                <Image
+                  src="/icons/coming-soon.svg"
+                  alt="Coming Soon"
+                  width={110}
+                  height={110}
+                  className="object-contain"
+                />
               </div>
               
               {/* Title */}
@@ -140,7 +146,7 @@ export default function ChooseMapPage() {
               </p>
               
               {/* Status Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-500 rounded-full text-sm font-semibold">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-500 rounded-full text-sm font-semibold self-start">
                 <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
                 Coming Soon
               </div>
