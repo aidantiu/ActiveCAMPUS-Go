@@ -2,14 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '../components/AuthProvider';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getUserRank } from '@/lib/firestore';
 import Sidebar from '../components/Sidebar';
 import MapComponent from '../components/MapComponent';
+import LeaderboardsPage from '../leaderboards/page'; // local import of the page component
+import ProfilePage from '../character_customization/page';
 
 export default function DashboardPage() {
   const { user, userProfile, loading, signOut, refreshUserProfile } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const view = searchParams?.get('view') || 'map';
   const [userStats, setUserStats] = useState({
     steps: 0,
     campusEnergy: 0,
@@ -91,7 +95,7 @@ export default function DashboardPage() {
         
         <div className="flex-1 flex flex-col">
           {/* Enhanced Header with glassmorphism */}
-          <header className="bg-white/10 backdrop-blur-xl shadow-2xl border-b border-white/20 px-8 py-6">
+          <header className="bg-white/10 backdrop-blur-xl shadow-2xl border-b border-white/20 px-8 py-3">
             <div className="flex justify-between items-start">
               {/* Welcome Section */}
               <div className="space-y-1">
@@ -103,32 +107,32 @@ export default function DashboardPage() {
               <div className="flex gap-4">
                 {/* Campus Energy Card */}
                 <div className="bg-gradient-to-br from-amber-500/20 to-orange-600/20 backdrop-blur-lg rounded-2xl px-6 py-4 border border-amber-400/30 shadow-xl min-w-[140px]">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-[1px]">
                     <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
                     <p className="text-xs font-semibold text-amber-200 uppercase tracking-wider">Campus Energy</p>
                   </div>
-                  <p className="text-3xl font-bold text-white">{userStats.campusEnergy}</p>
-                  <p className="text-xs text-amber-200 mt-1">CE Points</p>
+                  <p className="text-2xl font-bold text-white">{userStats.campusEnergy}</p>
+                  <p className="text-xs text-amber-200 mt-[1px]">CE Points</p>
                 </div>
 
                 {/* Steps Card */}
                 <div className="bg-gradient-to-br from-emerald-500/20 to-green-600/20 backdrop-blur-lg rounded-2xl px-6 py-4 border border-emerald-400/30 shadow-xl min-w-[140px]">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-[1px]">
                     <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
                     <p className="text-xs font-semibold text-emerald-200 uppercase tracking-wider">Steps Today</p>
                   </div>
-                  <p className="text-3xl font-bold text-white">{userStats.steps.toLocaleString()}</p>
-                  <p className="text-xs text-emerald-200 mt-1">Daily Count</p>
+                  <p className="text-2xl font-bold text-white">{userStats.steps.toLocaleString()}</p>
+                  <p className="text-xs text-emerald-200 mt-[1px]">Daily Count</p>
                 </div>
 
                 {/* Rank Card */}
                 <div className="bg-gradient-to-br from-violet-500/20 to-purple-600/20 backdrop-blur-lg rounded-2xl px-6 py-4 border border-violet-400/30 shadow-xl min-w-[140px]">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-[1px]">
                     <div className="w-2 h-2 bg-violet-400 rounded-full animate-pulse"></div>
                     <p className="text-xs font-semibold text-violet-200 uppercase tracking-wider">Campus Rank</p>
                   </div>
-                  <p className="text-3xl font-bold text-white">#{userStats.rank}</p>
-                  <p className="text-xs text-violet-200 mt-1">Leaderboard</p>
+                  <p className="text-2xl font-bold text-white">#{userStats.rank}</p>
+                  <p className="text-xs text-violet-200 mt-[1px]">Leaderboard</p>
                 </div>
               </div>
             </div>
@@ -137,26 +141,32 @@ export default function DashboardPage() {
           {/* Main Content with subtle frame */}
           <main className="flex-1 relative overflow-hidden p-6">
             <div className="h-full bg-white/5 backdrop-blur-sm rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
-              <MapComponent 
-                onLocationUpdate={(lat, lng) => {
-                  console.log('Location updated:', lat, lng);
-                }}
-                onChallengeComplete={async () => {
-                  await refreshUserProfile();
-                  // Also refresh the rank after completing a challenge
-                  if (user) {
-                    try {
-                      const rank = await getUserRank(user.uid);
-                      setUserStats(prevStats => ({
-                        ...prevStats,
-                        rank: rank ? rank.toString() : "--",
-                      }));
-                    } catch (error) {
-                      console.error('Error refreshing user rank:', error);
+              {/* Conditional render: leaderboards or map */}
+              {view === 'leaderboards' ? (
+                <LeaderboardsPage />
+              ) : view === 'profile' ? (
+                <ProfilePage />
+              ) : (
+                <MapComponent
+                  onLocationUpdate={(lat, lng) => {
+                    console.log('Location updated:', lat, lng);
+                  }}
+                  onChallengeComplete={async () => {
+                    await refreshUserProfile();
+                    if (user) {
+                      try {
+                        const rank = await getUserRank(user.uid);
+                        setUserStats(prevStats => ({
+                          ...prevStats,
+                          rank: rank ? rank.toString() : "--",
+                        }));
+                      } catch (error) {
+                        console.error('Error refreshing user rank:', error);
+                      }
                     }
-                  }
-                }}
-              />
+                  }}
+                />
+              )}
             </div>
           </main>
         </div>
