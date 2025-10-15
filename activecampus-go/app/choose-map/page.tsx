@@ -7,7 +7,7 @@ import Image from 'next/image';
 import introBg from '../assets/intro_bg.svg';
 
 export default function ChooseMapPage() {
-  const { user, loading, signOut } = useAuth();
+  const { user, userProfile, loading, signOut } = useAuth();
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
 
@@ -21,20 +21,26 @@ export default function ChooseMapPage() {
     return () => clearTimeout(initTimer);
   }, []);
 
-  // Redirect to login if not authenticated (only after ready)
+  // Redirect based on authentication and campus-self completion status
   useEffect(() => {
     if (!isReady) return; // Don't check until ready
     
-    console.log('ChooseMap: Auth check -', { loading, hasUser: !!user, isReady });
+    console.log('ChooseMap: Auth check -', { 
+      loading, 
+      hasUser: !!user, 
+      hasProfile: !!userProfile,
+      campusSelfCompleted: userProfile?.campusSelfCompleted,
+      isReady 
+    });
     
     if (!loading && !user) {
       console.log('ChooseMap: No user, redirecting to login');
       router.push('/intro');
     }
-  }, [user, loading, isReady, router]);
+  }, [user, userProfile, loading, isReady, router]);
 
   // Show loading state while auth is initializing or still loading
-  if (!isReady || loading) {
+  if (!isReady || loading || (user && !userProfile)) {
     return (
       <div 
         className="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center relative"
@@ -51,8 +57,8 @@ export default function ChooseMapPage() {
     );
   }
 
-  // Show redirecting message if not authenticated
-  if (!user) {
+  // Show redirecting message if not authenticated or campus-self not completed
+  if (!user || (user && userProfile && !userProfile.campusSelfCompleted)) {
     return (
       <div 
         className="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center relative"
@@ -63,7 +69,7 @@ export default function ChooseMapPage() {
         <div className="absolute inset-0 bg-slate-900/40"></div>
         <div className="text-center relative z-10">
           <div className="w-16 h-16 border-4 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-white">Redirecting to login...</p>
+          <p className="text-white">Redirecting...</p>
         </div>
       </div>
     );

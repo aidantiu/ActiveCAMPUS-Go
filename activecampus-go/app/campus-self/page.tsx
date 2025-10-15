@@ -2,6 +2,9 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '../components/AuthProvider';
+import { updateDoc, doc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import IntroBg from "../assets/intro_bg.svg";
 import btnFrame from "../assets/startbtn_frame.svg";
 import blueMale from "../assets/images/base-male.png";
@@ -26,6 +29,8 @@ const campusSelves = [
 
 export default function CampusSelfPage() {
   const [selected, setSelected] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const { user } = useAuth();
   const router = useRouter();
 
   const handleExplore = () => {

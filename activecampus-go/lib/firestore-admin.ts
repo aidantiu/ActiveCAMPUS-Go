@@ -28,6 +28,7 @@ export interface User {
     accessories: string[];
     currentOutfit: string[];
   };
+  campusSelfCompleted: boolean; // tracks if user has completed campus-self selection
   totalSteps: number;
   campusEnergy: number;
   level: number;
