@@ -2,6 +2,9 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '../components/AuthProvider';
+import { updateDoc, doc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import IntroBg from "../assets/intro_bg.svg";
 import btnFrame from "../assets/startbtn_frame.svg";
 
@@ -25,12 +28,28 @@ const campusSelves = [
 
 export default function CampusSelfPage() {
   const [selected, setSelected] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const { user } = useAuth();
   const router = useRouter();
 
-  const handleExplore = () => {
-    if (selected) {
-      // Optionally, save selection in localStorage or context here
-      router.push('/dashboard');
+  const handleExplore = async () => {
+    if (selected && user) {
+      setIsSaving(true);
+      try {
+        // Update user profile with campus self selection
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, {
+          'avatar.base': selected,
+          campusSelfCompleted: true,
+          lastActive: new Date()
+        });
+        
+        // Navigate to dashboard
+        router.push('/dashboard');
+      } catch (error) {
+        console.error('Error saving campus self selection:', error);
+        setIsSaving(false);
+      }
     }
   };
 
@@ -108,38 +127,38 @@ export default function CampusSelfPage() {
         ))}
       </div>
 
-      {/* Explore button */}
-      <button
-        disabled={!selected}
-        onClick={handleExplore}
-        className={`
-          relative bottom-20 flex flex-col items-center justify-center relative
-          transition-all duration-150
-          ${selected ? 'hover:scale-105 active:scale-95' : 'opacity-60 cursor-not-allowed'}
-        `}
-      >
+       {/* Explore button */}
+       <button
+         disabled={!selected || isSaving}
+         onClick={handleExplore}
+         className={`
+           relative bottom-20 flex flex-col items-center justify-center relative
+           transition-all duration-150
+           ${selected && !isSaving ? 'hover:scale-105 active:scale-95' : 'opacity-60 cursor-not-allowed'}
+         `}
+       >
         <img
           src={btnFrame.src}
           alt="Button Frame"
           className="w-[320px] h-auto"
           draggable={false}
         />
-        <span
-          className="absolute pixel-font text-[24px] font-semibold text-[#8AC1E3] text-center leading-tight"
-          style={{
-            textShadow: `
-              -2px -2px 0 black,
-              2px -2px 0 black,
-              -2px 2px 0 black,
-              2px 2px 0 black
-            `,
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-          }}
-        >
-          Explore<br />the Campus
-        </span>
+         <span
+           className="absolute pixel-font text-[24px] font-semibold text-[#8AC1E3] text-center leading-tight"
+           style={{
+             textShadow: `
+               -2px -2px 0 black,
+               2px -2px 0 black,
+               -2px 2px 0 black,
+               2px 2px 0 black
+             `,
+             top: '50%',
+             left: '50%',
+             transform: 'translate(-50%, -50%)',
+           }}
+         >
+           {isSaving ? 'Saving...' : 'Explore\nthe Campus'}
+         </span>
       </button>
     </div>
   );

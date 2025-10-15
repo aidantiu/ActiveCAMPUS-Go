@@ -26,6 +26,7 @@ export interface User {
     accessories: string[]; // unlocked accessories
     currentOutfit: string[]; // equipped items
   };
+  campusSelfCompleted: boolean; // tracks if user has completed campus-self selection
   totalSteps: number;
   campusEnergy: number; // CE - the main currency
   level: number;
@@ -48,6 +49,7 @@ export const createUser = async (uid: string, userData: Partial<User>) => {
       accessories: [],
       currentOutfit: []
     },
+    campusSelfCompleted: false, // User hasn't completed campus-self selection yet
     totalSteps: 0,
     campusEnergy: 0,
     level: 1,
