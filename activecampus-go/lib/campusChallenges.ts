@@ -12,6 +12,14 @@ export type Challenge = {
 
 export const DEFAULT_CHALLENGES: Challenge[] = [
   {
+    id: 'test-location',
+    title: '🎯 Test Location Quest',
+    description: 'Real-time tracking test! Get within 50m to claim this reward.',
+    lat: 14.773854,
+    lng: 120.978686,
+    reward: 100,
+  },
+  {
     id: 'lagoon',
     title: 'Walk to the Lagoon',
     description: 'Walk to the campus lagoon to earn Campus Energy.',

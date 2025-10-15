@@ -25,7 +25,7 @@ export default function DashboardPage() {
     if (userProfile) {
       setUserStats(prevStats => ({
         ...prevStats,
-        steps: userProfile.totalSteps || 0,
+        steps: userProfile.dailySteps || 0, // Changed from totalSteps to dailySteps
         campusEnergy: userProfile.campusEnergy || 0,
       }));
     }

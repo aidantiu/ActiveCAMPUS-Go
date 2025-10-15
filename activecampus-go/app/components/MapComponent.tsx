@@ -9,7 +9,14 @@ import {
   Challenge,
 } from '../../lib/campusChallenges';
 import { useAuth } from './AuthProvider';
-import { completeChallenge } from '@/lib/firestore';
+import { completeChallenge, updateUserSteps } from '@/lib/firestore';
+import {
+  StepTracker,
+  loadStepTracker,
+  saveStepTracker,
+  updateStepCount,
+  getStepStats,
+} from '@/lib/stepTracking';
 
 interface MapComponentProps {
   onLocationUpdate?: (lat: number, lng: number) => void;
@@ -75,6 +82,15 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isClaimingReward, setIsClaimingReward] = useState(false);
 
+  // Step tracking state
+  const [stepTracker, setStepTracker] = useState<StepTracker | null>(null);
+  const stepTrackerRef = useRef<StepTracker | null>(null);
+  const [currentSteps, setCurrentSteps] = useState({
+    total: 0,
+    daily: 0,
+    distance: 0
+  });
+
   // Challenge state - initialize from user profile
   const [claimedChallenges, setClaimedChallenges] = useState<Record<string, boolean>>({});
   const claimedChallengesRef = useRef<Record<string, boolean>>({});
@@ -113,7 +129,51 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
       claimedChallengesRef.current = mergedMap;
       setCampusEnergy(userProfile.campusEnergy || 0);
       
+      // Initialize step tracker
+      const tracker = loadStepTracker(user.uid);
+      // Sync with backend if backend has more steps
+      if (userProfile.totalSteps > tracker.totalSteps) {
+        tracker.totalSteps = userProfile.totalSteps;
+      }
+      if (userProfile.dailySteps > tracker.dailySteps) {
+        tracker.dailySteps = userProfile.dailySteps;
+      }
+      setStepTracker(tracker);
+      stepTrackerRef.current = tracker;
+      setCurrentSteps({
+        total: tracker.totalSteps,
+        daily: tracker.dailySteps,
+        distance: tracker.totalDistance
+      });
+      
+      // One-time CE migration: Add CE for existing steps with new formula
+      const expectedCEFromSteps = Math.floor(userProfile.totalSteps / 20) * 10;
+      const migrationKey = `ce_migrated_v2_${user.uid}`;
+      const hasMigrated = localStorage.getItem(migrationKey);
+      
+      if (!hasMigrated && userProfile.totalSteps >= 20 && expectedCEFromSteps > 0) {
+        pushLog(`🔧 CE Migration: Adding ${expectedCEFromSteps} CE for ${userProfile.totalSteps} existing steps`);
+        
+        // Add the step CE to current CE (preserves quest rewards)
+        const newCE = userProfile.campusEnergy + expectedCEFromSteps;
+        
+        // Update CE in backend
+        import('@/lib/firebase').then(({ db }) => {
+          import('firebase/firestore').then(({ doc, updateDoc }) => {
+            const userRef = doc(db, 'users', user.uid);
+            updateDoc(userRef, {
+              campusEnergy: newCE
+            }).then(() => {
+              pushLog(`✅ CE migrated! Old: ${userProfile.campusEnergy} → New: ${newCE} (+${expectedCEFromSteps} CE)`);
+              localStorage.setItem(migrationKey, 'true');
+              refreshUserProfile();
+            });
+          });
+        });
+      }
+      
       pushLog(`Loaded ${completed.length} challenges from backend, merged with local data`);
+      pushLog(`Step tracker initialized: ${tracker.totalSteps} total steps, ${tracker.dailySteps} today`);
     }
   }, [userProfile, user]);
 
@@ -543,6 +603,67 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
       if (error) setError(null);
       pushLog(`Position updated: lat=${userLatLng.lat.toFixed(6)} lng=${userLatLng.lng.toFixed(6)} acc=${position.coords.accuracy?.toFixed(0)}m`);
 
+      // Update step tracking
+      pushLog(`🔍 Step tracking check: user=${!!user}, stepTrackerRef=${!!stepTrackerRef.current}`);
+      
+      if (user) {
+        // Initialize step tracker if not already done
+        if (!stepTrackerRef.current) {
+          const tracker = loadStepTracker(user.uid);
+          stepTrackerRef.current = tracker;
+          setStepTracker(tracker);
+          pushLog(`✨ Step tracker auto-initialized: ${tracker.totalSteps} total steps, ${tracker.dailySteps} today`);
+        }
+        
+        pushLog(`🔍 Before updateStepCount: lastLoc=${stepTrackerRef.current.lastLocation ? 'exists' : 'null'}, totalSteps=${stepTrackerRef.current.totalSteps}`);
+        const result = updateStepCount(stepTrackerRef.current, userLatLng);
+        
+        // Log result even if no steps (for debugging)
+        pushLog(`📊 Step tracking result: distance=${result.distance.toFixed(2)}m, newSteps=${result.newSteps}, totalSteps=${result.tracker.totalSteps}`);
+        
+        // Always update local state (even if no new steps, to track lastLocation)
+        stepTrackerRef.current = result.tracker;
+        setStepTracker(result.tracker);
+        setCurrentSteps({
+          total: result.tracker.totalSteps,
+          daily: result.tracker.dailySteps,
+          distance: result.tracker.totalDistance
+        });
+        
+        // Debug log for state update
+        if (result.newSteps > 0) {
+          pushLog(`📊 State updated: Total=${result.tracker.totalSteps}, Daily=${result.tracker.dailySteps}, Distance=${result.tracker.totalDistance.toFixed(1)}m`);
+        }
+        
+        // Save to localStorage
+        saveStepTracker(user.uid, result.tracker);
+        
+        if (result.newSteps > 0) {
+          // Sync to backend immediately for instant updates
+          updateUserSteps(
+            user.uid,
+            result.newSteps,
+            result.tracker.totalSteps,
+            result.tracker.dailySteps
+          ).then((response) => {
+            if (response) {
+              pushLog(`✅ Steps synced: +${result.newSteps} steps, earned +${response.earnedCE} CE, Total CE: ${response.newCampusEnergy}`);
+              // Always refresh user profile to update dashboard stats
+              refreshUserProfile();
+            }
+          }).catch((err) => {
+            console.error('Error updating steps:', err);
+            pushLog(`❌ Sync error: ${err.message}`);
+          });
+          
+          pushLog(`🚶 Steps: +${result.newSteps} (${result.distance.toFixed(1)}m) | Total: ${result.tracker.totalSteps} | Today: ${result.tracker.dailySteps}`);
+        } else if (result.distance > 0) {
+          pushLog(`⚠️ Movement detected but filtered: ${result.distance.toFixed(2)}m (min required: 0.5m)`);
+        }
+      } else {
+        pushLog(`❌ Step tracking skipped: user=${!!user}, tracker=${!!stepTrackerRef.current}`);
+      }
+
       // Update challenge proximity visuals
       try {
         const markers = challengeMarkersRef.current;
@@ -712,6 +833,14 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
   const useDemoLocation = () => {
     if (!map) return;
     
+    // Initialize step tracker if not already done
+    if (!stepTrackerRef.current && user) {
+      const tracker = loadStepTracker(user.uid);
+      setStepTracker(tracker);
+      stepTrackerRef.current = tracker;
+      pushLog(`Step tracker initialized in demo mode: ${tracker.totalSteps} total steps`);
+    }
+    
     // Simulate location near PUP (slightly offset from campus center)
     const demoLocation = {
       lat: 14.5995 + (Math.random() - 0.5) * 0.002, // Random position within ~100m
@@ -721,6 +850,24 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
   pushLog('Using demo location (simulated)');
   setUserLocation(demoLocation);
     setIsTracking(true);
+    
+    // Trigger step tracking for demo location
+    if (user && stepTrackerRef.current) {
+      const result = updateStepCount(stepTrackerRef.current, demoLocation);
+      pushLog(`📊 Demo step tracking: distance=${result.distance.toFixed(2)}m, newSteps=${result.newSteps}`);
+      
+      if (result.newSteps > 0 || result.distance > 0) {
+        stepTrackerRef.current = result.tracker;
+        setStepTracker(result.tracker);
+        setCurrentSteps({
+          total: result.tracker.totalSteps,
+          daily: result.tracker.dailySteps,
+          distance: result.tracker.totalDistance
+        });
+        saveStepTracker(user.uid, result.tracker);
+        pushLog(`🚶 Demo steps updated: Total=${result.tracker.totalSteps}, Daily=${result.tracker.dailySteps}`);
+      }
+    }
 
     // Create or update marker
     if (userMarkerRef.current) {
@@ -877,6 +1024,35 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
           🎮 Demo Location
         </button>
         
+        {/* Sync Steps Button */}
+        {user && stepTrackerRef.current && stepTrackerRef.current.totalSteps > 0 && (
+          <button
+            onClick={() => {
+              if (stepTrackerRef.current) {
+                pushLog(`🔄 Manual sync initiated...`);
+                updateUserSteps(
+                  user.uid,
+                  0, // No new steps, just syncing current state
+                  stepTrackerRef.current.totalSteps,
+                  stepTrackerRef.current.dailySteps
+                ).then((response) => {
+                  if (response) {
+                    pushLog(`✅ Manual sync complete: Total=${response.totalSteps}, Daily=${response.dailySteps}, Earned CE=${response.earnedCE}, Total CE=${response.newCampusEnergy}`);
+                    refreshUserProfile();
+                  }
+                }).catch((err) => {
+                  console.error('Error syncing steps:', err);
+                  pushLog(`❌ Sync failed: ${err.message}`);
+                });
+              }
+            }}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg shadow-lg hover:bg-green-600 font-medium text-sm"
+            title="Sync steps to backend and update dashboard"
+          >
+            🔄 Sync Steps
+          </button>
+        )}
+        
         {/* Show retry button only when there's an error */}
         {error && !isTracking && (
           <button
@@ -905,6 +1081,18 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-600">Quests Completed:</span>
                 <span className="text-sm font-semibold text-green-600">{userProfile.completedChallenges?.length || 0}</span>
+              </div>
+            </div>
+          )}
+          
+          {/* Step Count Display */}
+          {currentSteps.total > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-600">Distance:</span>
+                  <span className="text-xs font-medium text-gray-700">{(currentSteps.distance / 1000).toFixed(2)} km</span>
+                </div>
               </div>
             </div>
           )}

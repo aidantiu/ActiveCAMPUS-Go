@@ -50,8 +50,8 @@ export const formatCE = (ce: number): string => {
 
 // Calculate CE earned from steps
 export const calculateCEFromSteps = (steps: number): number => {
-  // Example: 100 steps = 1 CE
-  return Math.floor(steps / 100);
+  // 20 steps = 10 CE
+  return Math.floor(steps / 20) * 10;
 };
 
 // Calculate level from total steps

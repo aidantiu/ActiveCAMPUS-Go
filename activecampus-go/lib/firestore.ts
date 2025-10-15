@@ -74,27 +74,42 @@ export const getUser = async (uid: string): Promise<User | null> => {
   return null;
 };
 
-export const updateUserSteps = async (uid: string, steps: number) => {
+export const updateUserSteps = async (
+  uid: string, 
+  newSteps: number,
+  totalSteps: number,
+  dailySteps: number
+) => {
   const userRef = doc(db, 'users', uid);
   const user = await getUser(uid);
   
   if (user) {
-    const newTotalSteps = user.totalSteps + steps;
-    const newDailySteps = user.dailySteps + steps;
-    const earnedCE = calculateCEFromSteps(steps);
+    // Calculate CE earned from step difference
+    const stepDifference = totalSteps - user.totalSteps;
+    const earnedCE = stepDifference > 0 ? calculateCEFromSteps(stepDifference) : 0;
     const newCampusEnergy = user.campusEnergy + earnedCE;
-    const newLevel = calculateLevel(newTotalSteps);
+    const newLevel = calculateLevel(totalSteps);
+    
+    console.log('🔍 CE Calculation Debug:', {
+      backendSteps: user.totalSteps,
+      newTotalSteps: totalSteps,
+      stepDifference,
+      earnedCE,
+      oldCE: user.campusEnergy,
+      newCE: newCampusEnergy,
+      formula: `${stepDifference} new steps / 20 * 10 = +${earnedCE} CE`
+    });
     
     await updateDoc(userRef, {
-      totalSteps: newTotalSteps,
-      dailySteps: newDailySteps,
+      totalSteps,
+      dailySteps,
       campusEnergy: newCampusEnergy,
       level: newLevel,
       lastActive: Timestamp.now(),
       lastStepUpdate: Timestamp.now(),
     });
     
-    return { earnedCE, newLevel };
+    return { earnedCE, newLevel, totalSteps, dailySteps, newCampusEnergy };
   }
   return null;
 };
@@ -406,8 +421,8 @@ export const checkAndAwardAchievements = async (uid: string) => {
 
 // Utility functions
 export const calculateCEFromSteps = (steps: number): number => {
-  // Example: 100 steps = 1 CE
-  return Math.floor(steps / 100);
+  // 20 steps = 10 CE
+  return Math.floor(steps / 20) * 10;
 };
 
 export const calculateLevel = (totalSteps: number): number => {
