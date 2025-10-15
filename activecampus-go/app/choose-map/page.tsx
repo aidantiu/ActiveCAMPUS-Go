@@ -29,7 +29,7 @@ export default function ChooseMapPage() {
     
     if (!loading && !user) {
       console.log('ChooseMap: No user, redirecting to login');
-      router.push('/login');
+      router.push('/intro');
     }
   }, [user, loading, isReady, router]);
 
