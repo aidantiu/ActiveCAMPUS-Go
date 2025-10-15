@@ -21,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={kenneyFont.variable}>
-      <body className={kenneyFont.className}>
+    <html lang="en" className={kenneyFont.variable} suppressHydrationWarning>
+      <body className={kenneyFont.className} suppressHydrationWarning>
         <AuthProvider>
           {children}
         </AuthProvider>
