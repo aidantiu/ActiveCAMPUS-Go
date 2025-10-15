@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useAuth } from "../components/AuthProvider";
-import { useRouter } from "next/navigation";
-import MapComponent from "../components/MapComponent";
-import Sidebar from "../components/Sidebar";
+import { useEffect, useState } from 'react';
+import { useAuth } from '../components/AuthProvider';
+import { useRouter } from 'next/navigation';
+import Sidebar from '../components/Sidebar';
+import MapComponent from '../components/MapComponent';
 
 export default function DashboardPage() {
   const { user, userProfile, loading, signOut, refreshUserProfile } = useAuth();
@@ -14,99 +14,89 @@ export default function DashboardPage() {
     campusEnergy: 0,
     rank: "--",
   });
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-
-  // Load sidebar state from localStorage
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("ac_sidebar_open");
-      if (saved !== null) {
-        setSidebarOpen(saved === "true");
-      }
-    } catch (e) {
-      // ignore
-    }
-  }, []);
-
-  // Persist sidebar state
-  useEffect(() => {
-    try {
-      localStorage.setItem("ac_sidebar_open", sidebarOpen ? "true" : "false");
-    } catch (e) {
-      // ignore
-    }
-  }, [sidebarOpen]);
 
   // Update user stats from profile
   useEffect(() => {
     if (userProfile) {
       setUserStats({
-        steps: userProfile.totalSteps,
-        campusEnergy: userProfile.campusEnergy,
-        rank: "--", // Calculate rank later if needed
+        steps: userProfile.totalSteps || 0,
+        campusEnergy: userProfile.campusEnergy || 0,
+        rank: (userProfile as any).rank || "--",
       });
     }
   }, [userProfile]);
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
-    }
-  }, [user, loading, router]);
-
-  // Location update handler
-  const handleLocationUpdate = (lat: number, lng: number) => {
-    // TODO: Update user location in Firestore
-    // TODO: Calculate steps based on distance
-    console.log('Location updated:', { lat, lng });
-  };
-
-  // Challenge complete handler
-  const handleChallengeComplete = async () => {
-    await refreshUserProfile();
-    console.log('Challenge completed - profile refreshed in dashboard');
-  };
-
+  // Show loading screen while authentication is being checked
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );
   }
 
+  // Redirect to login if not authenticated
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirecting to login...</p>
-        </div>
-      </div>
-    );
+    router.push('/login');
+    return null;
   }
 
   return (
-    <div className="h-screen flex bg-gray-50">
-      <Sidebar />
+    <div className="h-screen flex relative">
+      {/* FIXED BACKGROUND LAYER - This stays behind everything */}
+      <div 
+        className="fixed inset-0 z-0"
+        style={{
+          backgroundImage: 'url(/intro_bg.svg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      />
+      
+      {/* CONTENT LAYER - Everything sits on top with transparency */}
+      <div className="relative z-10 flex w-full h-full">
+        {/* Sidebar with NO background color */}
+        <Sidebar />
+        
+        <div className="flex-1 flex flex-col">
+          {/* Header with semi-transparent background */}
+          <header className="bg-white bg-opacity-70 backdrop-blur-md shadow-sm border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-gray-600">Welcome back, {userProfile?.displayName || user?.email}!</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-sm text-gray-600">Campus Energy</p>
+                <p className="text-2xl font-bold text-blue-600">{userStats.campusEnergy} CE</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-600">Steps Today</p>
+                <p className="text-2xl font-bold text-green-600">{userStats.steps.toLocaleString()}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-600">Campus Rank</p>
+                <p className="text-2xl font-bold text-purple-600">#{userStats.rank}</p>
+              </div>
+            </div>
+          </header>
 
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col">
-        {/* Header removed per request - content continues below */}
-
-        {/* Content (Map) */}
-        <main className="flex-1 relative overflow-hidden">
-          <MapComponent 
-            onLocationUpdate={handleLocationUpdate}
-            onChallengeComplete={handleChallengeComplete}
-          />
-        </main>
-
-        {/* Bottom navigation removed per request */}
+          {/* Main Content */}
+          <main className="flex-1 relative overflow-hidden">
+            <MapComponent 
+              onLocationUpdate={(lat, lng) => {
+                console.log('Location updated:', lat, lng);
+              }}
+              onChallengeComplete={async () => {
+                await refreshUserProfile();
+              }}
+            />
+          </main>
+        </div>
       </div>
     </div>
   );
