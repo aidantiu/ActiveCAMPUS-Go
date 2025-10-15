@@ -28,7 +28,7 @@ export default function ChooseMapPage() {
     
     if (!loading && !user) {
       console.log('ChooseMap: No user, redirecting to login');
-      router.push('/login');
+      router.push('/intro');
     }
   }, [user, loading, isReady, router]);
 
@@ -73,7 +73,7 @@ export default function ChooseMapPage() {
         <div className="grid md:grid-cols-2 gap-6 items-stretch">
           {/* PUP Sta Mesa Campus - Available */}
           <button
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/campus-self')}
             className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 overflow-hidden h-full flex flex-col"
           >
             {/* Background Gradient - Changed to maroon */}

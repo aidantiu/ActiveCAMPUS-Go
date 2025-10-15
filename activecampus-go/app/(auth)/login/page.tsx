@@ -65,7 +65,7 @@ export default function LoginPage() {
       await new Promise((resolve) => setTimeout(resolve, 300));
 
       // Redirect to choose campus
-      router.push("/choose-map");
+      router.push("/dashboard");
     } catch (error: any) {
       console.error("Login error:", error);
 
