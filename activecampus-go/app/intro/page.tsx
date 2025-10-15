@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import btnFrame from "../assets/startbtn_frame.svg";
 
 export default function IntroPage() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -133,49 +134,38 @@ export default function IntroPage() {
       {/* Intro 1 - Explore Your Campus */}
       {currentIntro === 1 && (
         <div
-          className={`intro-viewport flex flex-col items-center justify-center p-0 cursor-pointer intro-section intro-container ${
-            isTransitioning ? 'transitioning' : ''
-          }`}
+          className="intro-viewport flex flex-col items-center justify-center p-0 cursor-pointer"
           style={{ backgroundColor: "#F7ECBE" }}
           onClick={() => handleIntroClick(1)}
         >
-          <div className="flex flex-col items-center justify-center w-full h-full p-8">
-            <div className="flex flex-col items-center mb-8">
-              <h1 className="flex flex-col items-center">
-                <span className="sr-only">ActiveCAMPUS Go</span>
-                <img
-                  src="/ActiveCampusLogo.svg"
-                  alt="ActiveCAMPUS Go pixel logo"
-                  style={{
-                    height: '279px',
-                    width: 'auto',
-                    maxWidth: '100%',
-                    display: 'block',
-                  }}
-                  className="mx-auto drop-shadow-lg mb-4"
-                  draggable={false}
-                />
-                <img
-                  src="/Explore-your-campus.svg"
-                  alt="Explore your campus"
-                  style={{
-                    height: '400px',
-                    width: 'auto',
-                    maxWidth: '100%',
-                    display: 'block',
-                    marginTop: '-100px',
-                  }}
-                  className="mx-auto drop-shadow-lg mb-4"
-                  draggable={false}
-                />
+          <div className={`intro-section intro-container flex flex-col items-center justify-center w-full h-full p-8 ${
+            isTransitioning ? 'transitioning' : ''
+          }`}>
+            <div className="flex flex-col items-center justify-center mb-8 w-full px-6">
+              <h1 className="flex flex-col items-center justify-center w-full">
+                <div className="flex justify-center w-full">
+                  <img
+                    src="/Explore-your-campus.svg"
+                    alt="Explore your campus"
+                    style={{
+                      height: '400px',
+                      width: 'auto',
+                      maxWidth: '100%',
+                      display: 'block',
+                      marginTop: '50px',
+                    }}
+                    className="mx-auto drop-shadow-lg mb-4"
+                    draggable={false}
+                  />
+                </div>
               </h1>
             </div>
 
-            <div className="text-center max-w-2xl flex flex-col items-center">
-              <h2 className="text-4xl font-bold text-green-800 mb-4 pixel-font relative bottom-6">
+            <div className="text-center max-w-2xl flex flex-col items-center px-6">
+              <h2 className="text-4xl font-bold text-green-800 mb-4 pixel-font relative bottom-6 relative bottom-17">
                 Explore Your Campus
               </h2>
-              <p className="text-lg text-gray-800 pixel-font leading-relaxed">
+              <p className="text-lg text-gray-800 pixel-font leading-relaxed relative bottom-20">
                 Turn your everyday walk into a quest! Discover hidden challenges, collect Campus Energy,
                 and unlock surprises as you explore familiar places in a whole new way.
               </p>
@@ -187,7 +177,7 @@ export default function IntroPage() {
 
             {/* Click hint */}
             <div className="mt-4 text-center">
-              <p className="text-sm text-gray-600 pixel-font">Click anywhere to continue...</p>
+              <p className="text-sm text-gray-600 pixel-font relative bottom-25 ">Click anywhere to continue...</p>
             </div>
           </div>
         </div>
@@ -196,61 +186,48 @@ export default function IntroPage() {
       {/* Intro 2 - Build Your Character */}
       {currentIntro === 2 && (
         <div
-          className={`intro-viewport flex flex-col items-center justify-center p-0 cursor-pointer intro-section intro-container fade-in ${
-            isTransitioning ? 'transitioning' : ''
-          }`}
+          className="intro-viewport flex flex-col items-center justify-center p-0 cursor-pointer"
           style={{ backgroundColor: "#C9F2BB" }}
           onClick={() => handleIntroClick(2)}
         >
-          <div className="flex flex-col items-center justify-center w-full h-full p-8">
-            <div className="flex flex-col items-center mb-8">
-              <h1 className="flex flex-col items-center">
-                <span className="sr-only">ActiveCAMPUS Go</span>
-                <img
-                  src="/ActiveCampusLogo.svg"
-                  alt="ActiveCAMPUS Go pixel logo"
-                  style={{
-                    height: '279px',
-                    width: 'auto',
-                    maxWidth: '100%',
-                    display: 'block',
-                  }}
-                  className="mx-auto drop-shadow-lg mb-4"
-                  draggable={false}
-                />
-                <img
-                  src="/Build-your-character.svg"
-                  alt="Build your character"
-                  style={{
-                    height: '400px',
-                    width: 'auto',
-                    maxWidth: '100%',
-                    display: 'block',
-                    marginTop: '-100px',
-                  }}
-                  className="mx-auto drop-shadow-lg mb-4"
-                  draggable={false}
-                />
+          <div className={`intro-section intro-container fade-in flex flex-col items-center justify-center w-full h-full p-4 md:p-8 ${
+            isTransitioning ? 'transitioning' : ''
+          }`}>
+            <div className="flex flex-col items-center justify-center mb-2 md:mb-8 w-full px-2 md:px-6">
+              <h1 className="flex flex-col items-center justify-center w-full">
+                <div className="flex justify-center w-full">
+                  <img
+                    src="/Build-your-character.svg"
+                    alt="Build your character"
+                    style={{
+                      height: '300px',
+                      width: 'auto',
+                      maxWidth: '100%',
+                      display: 'block',
+                      marginTop: '36px',
+                    }}
+                    className="mx-auto drop-shadow-lg mb-3 md:mb-4"
+                    draggable={false}
+                  />
+                </div>
               </h1>
             </div>
 
-            <div className="text-center max-w-2xl flex flex-col items-center">
-              <h2 className="text-4xl font-bold text-green-800 mb-4 pixel-font relative bottom-6">
+            <div className="text-center max-w-2xl flex flex-col items-center px-2 md:px-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-green-800 mb-2 md:mb-4 pixel-font relative bottom-4 md:bottom-6">
                 Build Your Character
               </h2>
-              <p className="text-lg text-gray-800 pixel-font leading-relaxed">
-                Use your steps to earn Campus Energy and upgrade your avatar. 
+              <p className="text-base md:text-lg text-gray-800 pixel-font leading-relaxed md:relative md:bottom-5">
+                Use your steps to earn Campus Energy and upgrade your avatar.
                 Unlock outfits, gear, and effects that show off your style and boost your step rewards.
               </p>
             </div>
 
-            <div className="mt-8 flex items-center justify-center w-full">
-              <div className="w-4 h-4 border-2 border-blue-400 rounded-full pixel-pulse"></div>
-            </div>
+
 
             {/* Click hint */}
-            <div className="mt-4 text-center">
-              <p className="text-sm text-gray-600 pixel-font">Click anywhere to continue...</p>
+            <div className="mt-3 md:mt-4 text-center">
+              <p className="text-sm text-gray-600 pixel-font md:relative md:bottom-5">Click anywhere to continue...</p>
             </div>
           </div>
         </div>
@@ -259,62 +236,85 @@ export default function IntroPage() {
       {/* Intro 3 - Join the Challenge */}
       {currentIntro === 3 && (
         <div
-          className={`intro-viewport flex flex-col items-center justify-center p-0 intro-section intro-container fade-in ${
-            isTransitioning ? 'transitioning' : ''
-          }`}
+          className="intro-viewport flex flex-col items-center justify-center p-0"
           style={{ backgroundColor: "#DFD2E9" }}
         >
-          <div className="flex flex-col items-center justify-center w-full h-full p-8">
-            <div className="flex flex-col items-center mb-8">
-              <h1 className="flex flex-col items-center">
-                <span className="sr-only">ActiveCAMPUS Go</span>
-                <img
-                  src="/ActiveCampusLogo.svg"
-                  alt="ActiveCAMPUS Go pixel logo"
-                  style={{
-                    height: '279px',
-                    width: 'auto',
-                    maxWidth: '100%',
-                    display: 'block',
-                  }}
-                  className="mx-auto drop-shadow-lg mb-4"
-                  draggable={false}
-                />
+          <div
+            className={`intro-section intro-container fade-in flex flex-col items-center justify-center w-full h-full p-4 md:p-8 ${
+              isTransitioning ? "transitioning" : ""
+            }`}
+          >
+            {/* Title image */}
+            <div className="flex flex-col items-center justify-center mb-4 md:mb-8 w-full">
+              <h1 className="w-full flex justify-center">
                 <img
                   src="/Join-the-challenge.svg"
                   alt="Join the challenge"
                   style={{
-                    height: '400px',
-                    width: 'auto',
-                    maxWidth: '100%',
-                    display: 'block',
-                    marginTop: '-100px',
+                    height: "260px",
+                    width: "auto",
+                    maxWidth: "100%",
+                    display: "block",
+                    marginTop: "28px",
                   }}
-                  className="mx-auto drop-shadow-lg mb-4"
+                  className="mx-auto drop-shadow-lg mb-2 md:mb-4"
                   draggable={false}
                 />
               </h1>
             </div>
 
-            <div className="text-center max-w-2xl flex flex-col items-center">
-              <h2 className="text-4xl font-bold text-green-800 mb-4 pixel-font relative bottom-6">
+            {/* Main description */}
+            <div className="text-center max-w-2xl flex flex-col items-center mb-2 md:mb-6 px-2 md:px-0">
+              <h2 className="text-2xl md:text-4xl font-bold text-green-800 mb-2 md:mb-4 pixel-font relative bottom-3 md:bottom-6">
                 Join the Challenge
               </h2>
-              <p className="text-lg text-gray-800 pixel-font leading-relaxed">
+              <p className="text-base md:text-lg text-gray-800 pixel-font leading-relaxed">
                 Turn your everyday walk into a quest! Discover hidden challenges, collect Campus Energy,
                 and unlock surprises as you explore familiar places in a whole new way.
               </p>
             </div>
 
-            <div className="mt-8 flex items-center justify-center w-full">
-              <div className="w-4 h-4 border-2 border-blue-400 rounded-full pixel-pulse"></div>
-            </div>
 
-            <div className="flex flex-col items-center justify-center">
-              <img src="/start_btn_frame.svg" alt="Start Button Frame" className="w-[370px] h-auto" />
-              <h2 className="text-4xl font-bold text-green-800 mb-4 pixel-font">
-                Let's Step In!
-              </h2>
+            {/* "Let's Step In!" button section - smaller version */}
+            <div className="flex flex-col items-center justify-center relative mt-3 md:mt-5 w-full">
+              <button
+                style={{ outline: "none" }}
+                className={`
+                  relative flex items-center justify-center group
+                  transition-all duration-150
+                  hover:scale-105 active:scale-95
+                  focus:outline-none
+                `}
+                tabIndex={0}
+                aria-label="Let's Step In!"
+                onClick={() => window.location.href = '/dashboard'}
+              >
+                <img
+                  src={btnFrame.src}
+                  alt="Start Button Frame"
+                  className="w-[135px] md:w-[190px] h-auto block relative z-0 group-hover:brightness-105 group-hover:drop-shadow-lg transition-all duration-150"
+                  draggable={false}
+                />
+                <span
+                  className="absolute px-2 pixel-font text-xs md:text-lg font-bold text-green-800 pointer-events-none group-hover:text-green-900 transition-colors duration-150"
+                  style={{
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -55%)",
+                    whiteSpace: "nowrap",
+                    width: "fit-content",
+                    textShadow: `
+                      -2px -2px 0 #fff8,
+                      2px -2px 0 #fff8,
+                      -2px 2px 0 #fff8,
+                      2px 2px 0 #fff8
+                    `,
+                    userSelect: "none",
+                  }}
+                >
+                  Let's Step In!
+                </span>
+              </button>
             </div>
           </div>
         </div>

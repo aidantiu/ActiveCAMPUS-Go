@@ -35,14 +35,7 @@ export default function ChooseMapPage() {
     
     if (!loading && !user) {
       console.log('ChooseMap: No user, redirecting to login');
-      router.push('/login');
-    } else if (!loading && user && userProfile) {
-      // Check if user has completed campus-self selection
-      if (!userProfile.campusSelfCompleted) {
-        console.log('ChooseMap: User has not completed campus-self, redirecting to campus-self');
-        router.push('/campus-self');
-      }
-      // If campusSelfCompleted is true, user stays on choose-map page
+      router.push('/intro');
     }
   }, [user, userProfile, loading, isReady, router]);
 
