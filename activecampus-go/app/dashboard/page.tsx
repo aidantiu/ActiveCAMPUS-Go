@@ -67,7 +67,7 @@ export default function DashboardPage() {
           <header className="bg-white bg-opacity-70 backdrop-blur-md shadow-sm border-b border-gray-200 px-6 py-4 flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-gray-600">Welcome back, {user?.displayName || user?.email}!</p>
+              <p className="text-gray-600">Welcome back, {userProfile?.displayName || user?.email}!</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
