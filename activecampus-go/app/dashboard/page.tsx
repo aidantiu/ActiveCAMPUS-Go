@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../components/AuthProvider';
 import { useRouter } from 'next/navigation';
+import { getUserRank } from '@/lib/firestore';
 import Sidebar from '../components/Sidebar';
 import MapComponent from '../components/MapComponent';
 
@@ -18,13 +19,36 @@ export default function DashboardPage() {
   // Update user stats from profile
   useEffect(() => {
     if (userProfile) {
-      setUserStats({
+      setUserStats(prevStats => ({
+        ...prevStats,
         steps: userProfile.totalSteps || 0,
         campusEnergy: userProfile.campusEnergy || 0,
-        rank: (userProfile as any).rank || "--",
-      });
+      }));
     }
   }, [userProfile]);
+
+  // Fetch user rank separately
+  useEffect(() => {
+    const fetchUserRank = async () => {
+      if (user) {
+        try {
+          const rank = await getUserRank(user.uid);
+          setUserStats(prevStats => ({
+            ...prevStats,
+            rank: rank ? rank.toString() : "--",
+          }));
+        } catch (error) {
+          console.error('Error fetching user rank:', error);
+          setUserStats(prevStats => ({
+            ...prevStats,
+            rank: "--",
+          }));
+        }
+      }
+    };
+
+    fetchUserRank();
+  }, [user]);
 
   // Show loading screen while authentication is being checked
   if (loading) {
@@ -119,6 +143,18 @@ export default function DashboardPage() {
                 }}
                 onChallengeComplete={async () => {
                   await refreshUserProfile();
+                  // Also refresh the rank after completing a challenge
+                  if (user) {
+                    try {
+                      const rank = await getUserRank(user.uid);
+                      setUserStats(prevStats => ({
+                        ...prevStats,
+                        rank: rank ? rank.toString() : "--",
+                      }));
+                    } catch (error) {
+                      console.error('Error refreshing user rank:', error);
+                    }
+                  }
                 }}
               />
             </div>

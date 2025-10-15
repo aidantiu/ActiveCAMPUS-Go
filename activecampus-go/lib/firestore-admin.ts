@@ -135,3 +135,31 @@ export const getLeaderboard = async (limitCount: number = 50) => {
     throw error;
   }
 };
+
+// Get user's rank based on campus energy (server-side)
+export const getUserRank = async (uid: string): Promise<number | null> => {
+  try {
+    // Get the user's campus energy
+    const user = await getUser(uid);
+    if (!user) return null;
+    
+    // Get all users ordered by campus energy (descending)
+    const usersRef = adminDb.collection('users');
+    const snapshot = await usersRef.orderBy('campusEnergy', 'desc').get();
+    
+    // Find the user's position in the ranking
+    let rank = 1;
+    snapshot.forEach(doc => {
+      if (doc.id === uid) {
+        return rank;
+      }
+      rank++;
+    });
+    
+    // If user not found in leaderboard, return null
+    return null;
+  } catch (error) {
+    console.error('Error getting user rank:', error);
+    return null;
+  }
+};

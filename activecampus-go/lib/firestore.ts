@@ -121,6 +121,36 @@ export const getDepartmentLeaderboard = async (school: string, limitCount: numbe
   return querySnapshot.docs.map(doc => doc.data() as User);
 };
 
+// Get user's rank based on campus energy
+export const getUserRank = async (uid: string): Promise<number | null> => {
+  try {
+    // Get the user's campus energy
+    const user = await getUser(uid);
+    if (!user) return null;
+    
+    // Get all users ordered by campus energy (descending)
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, orderBy('campusEnergy', 'desc'));
+    const querySnapshot = await getDocs(q);
+    
+    // Find the user's position in the ranking
+    let rank = 1;
+    for (const doc of querySnapshot.docs) {
+      const userData = doc.data() as User;
+      if (doc.id === uid) {
+        return rank;
+      }
+      rank++;
+    }
+    
+    // If user not found in leaderboard, return null
+    return null;
+  } catch (error) {
+    console.error('Error getting user rank:', error);
+    return null;
+  }
+};
+
 // Campus Map Challenges
 export interface Challenge {
   id: string;
