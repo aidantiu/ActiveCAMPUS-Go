@@ -180,18 +180,8 @@ export default function CharacterCustomization() {
         imageRendering: 'pixelated'
       }}>
       <div className="max-w-6xl mx-auto">
-        {/* Back Button */}
-        <button
-          onClick={() => router.push('/dashboard')}
-          className="mb-4 flex items-center gap-2 text-white hover:text-[#ff8080] transition-colors"
-        >
-          <span className="text-2xl">←</span>
-          <span>Back to Dashboard</span>
-        </button>
-
-        <h1 className="text-4xl font-bold text-white mb-8 text-center">Character Customization</h1>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-5">
           {/* Character Preview */}
           <div className="col-span-1 bg-white/5 rounded-lg p-6 backdrop-blur-sm border border-[#800000]/20">
             <h2 className="text-2xl font-semibold text-white mb-4">Your Character</h2>
