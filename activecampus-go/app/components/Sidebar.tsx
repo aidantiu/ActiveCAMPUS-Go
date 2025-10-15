@@ -30,22 +30,24 @@ export default function Sidebar() {
         sidebarOpen ? 'w-64' : 'w-16'
       } ${isDashboard ? 'bg-gradient-to-b from-rose-950/40 via-red-950/30 to-maroon-950/40 backdrop-blur-xl' : 'bg-gradient-to-b from-rose-950 via-red-950 to-maroon-950'}`}
     >
-      {/* Collapse button */}
-      <button
-        aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="absolute top-3 right-3 z-30 p-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg shadow-lg hover:bg-white/20 transition-all hover:scale-110"
-      >
-        <svg
-          className={`w-4 h-4 text-rose-200 transform transition-transform duration-300 ${sidebarOpen ? '' : 'rotate-180'}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
+      {/* Collapse button - moved to top */}
+      <div className="flex justify-end p-2">
+        <button
+          aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="p-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg shadow-lg hover:bg-white/20 transition-all hover:scale-110"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
+          <svg
+            className={`w-4 h-4 text-rose-200 transform transition-transform duration-300 ${sidebarOpen ? '' : 'rotate-180'}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+      </div>
 
       {/* Logo header */}
       <div className={`flex items-center justify-center px-1 py-4 border-b border-white/20 ${
@@ -63,13 +65,13 @@ export default function Sidebar() {
       <nav className="flex-1 overflow-auto p-3 space-y-2">
         <button
           onClick={() => router.push('/dashboard')}
-          className={`w-full text-left flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 group ${
+          className={`w-full flex items-center rounded-xl transition-all duration-200 group ${
             pathname === '/dashboard' 
               ? 'bg-white/20 backdrop-blur-md border border-white/30 shadow-lg' 
               : 'hover:bg-white/10 border border-transparent hover:border-white/20'
-          } ${sidebarOpen ? '' : 'justify-center'}`}
+          } ${sidebarOpen ? 'gap-3 px-4 py-3.5 text-left' : 'justify-center p-3'}`}
         >
-          <div className={`p-1.5 rounded-lg ${pathname === '/dashboard' ? 'bg-rose-400/20' : 'group-hover:bg-white/10'} transition-colors`}>
+          <div className={`${sidebarOpen ? 'p-1.5' : 'p-0'} rounded-lg ${pathname === '/dashboard' ? 'bg-rose-400/20' : 'group-hover:bg-white/10'} transition-colors flex items-center justify-center`}>
             <Image 
               src="/icons/map-icon.png" 
               alt="Map" 
@@ -78,18 +80,18 @@ export default function Sidebar() {
               className="pixelated"
             />
           </div>
-          <span className={`${sidebarOpen ? '' : 'hidden'} font-semibold text-base text-white`}>Map</span>
+          {sidebarOpen && <span className="font-semibold text-base text-white">Map</span>}
         </button>
 
         <button
           onClick={() => router.push('/leaderboards')}
-          className={`w-full text-left flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 group ${
+          className={`w-full flex items-center rounded-xl transition-all duration-200 group ${
             pathname === '/leaderboards' 
               ? 'bg-white/20 backdrop-blur-md border border-white/30 shadow-lg' 
               : 'hover:bg-white/10 border border-transparent hover:border-white/20'
-          } ${sidebarOpen ? '' : 'justify-center'}`}
+          } ${sidebarOpen ? 'gap-3 px-4 py-3.5 text-left' : 'justify-center p-3'}`}
         >
-          <div className={`p-1.5 rounded-lg ${pathname === '/leaderboards' ? 'bg-amber-400/20' : 'group-hover:bg-white/10'} transition-colors`}>
+          <div className={`${sidebarOpen ? 'p-1.5' : 'p-0'} rounded-lg ${pathname === '/leaderboards' ? 'bg-amber-400/20' : 'group-hover:bg-white/10'} transition-colors flex items-center justify-center`}>
             <Image 
               src="/icons/trophy-icon.png" 
               alt="Leaderboard" 
@@ -98,18 +100,18 @@ export default function Sidebar() {
               className="pixelated"
             />
           </div>
-          <span className={`${sidebarOpen ? '' : 'hidden'} font-semibold text-base text-white`}>Leaderboard</span>
+          {sidebarOpen && <span className="font-semibold text-base text-white">Leaderboard</span>}
         </button>
 
         <button
-          className={`w-full text-left flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 group ${
+          className={`w-full flex items-center rounded-xl transition-all duration-200 group ${
             pathname === '/character_customization' 
               ? 'bg-white/20 backdrop-blur-md border border-white/30 shadow-lg' 
               : 'hover:bg-white/10 border border-transparent hover:border-white/20'
-          } ${sidebarOpen ? '' : 'justify-center'}`}
+          } ${sidebarOpen ? 'gap-3 px-4 py-3.5 text-left' : 'justify-center p-3'}`}
           onClick={() => router.push('/character_customization')}
         >
-          <div className={`p-1.5 rounded-lg ${pathname === '/character_customization' ? 'bg-violet-400/20' : 'group-hover:bg-white/10'} transition-colors`}>
+          <div className={`${sidebarOpen ? 'p-1.5' : 'p-0'} rounded-lg ${pathname === '/character_customization' ? 'bg-violet-400/20' : 'group-hover:bg-white/10'} transition-colors flex items-center justify-center`}>
             <Image 
               src="/icons/profile-icon.png" 
               alt="Profile" 
@@ -118,7 +120,7 @@ export default function Sidebar() {
               className="pixelated"
             />
           </div>
-          <span className={`${sidebarOpen ? '' : 'hidden'} font-semibold text-base text-white`}>Profile</span>
+          {sidebarOpen && <span className="font-semibold text-base text-white">Profile</span>}
         </button>
       </nav>
 
@@ -131,13 +133,13 @@ export default function Sidebar() {
             await signOut();
             router.push('/login');
           }}
-          className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 group border border-transparent ${
+          className={`w-full flex items-center rounded-xl transition-all duration-200 group border border-transparent ${
             isDashboard 
               ? 'hover:bg-red-500/20 hover:border-red-400/30' 
               : 'hover:bg-red-500/20 hover:border-red-400/30'
-          } ${sidebarOpen ? '' : 'justify-center'}`}
+          } ${sidebarOpen ? 'gap-3 px-4 py-3.5 text-left' : 'justify-center p-3'}`}
         >
-          <div className="p-1.5 rounded-lg group-hover:bg-red-400/20 transition-colors">
+          <div className={`${sidebarOpen ? 'p-1.5' : 'p-0'} rounded-lg group-hover:bg-red-400/20 transition-colors flex items-center justify-center`}>
             <Image 
               src="/icons/logout-icon.png" 
               alt="Sign Out" 
@@ -146,7 +148,7 @@ export default function Sidebar() {
               className="pixelated"
             />
           </div>
-          <span className={`${sidebarOpen ? '' : 'hidden'} font-semibold text-white`}>Sign Out</span>
+          {sidebarOpen && <span className="font-semibold text-white">Sign Out</span>}
         </button>
       </div>
     </aside>
