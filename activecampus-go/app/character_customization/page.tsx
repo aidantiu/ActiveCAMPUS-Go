@@ -177,15 +177,7 @@ export default function CharacterCustomization() {
     <div className="min-h-screen p-8" 
       style={{ backgroundImage: `url(${pup_bg.src})`,
       backgroundSize: "cover", }}>
-      <div className="max-w-6xl mx-auto">
-        {/* Add Back Button */}
-        <button
-          onClick={() => router.push('/dashboard')}
-          className="mb-4 flex items-center gap-2 text-white hover:text-[#ff8080] transition-colors"
-        >
-          <span className="text-2xl">←</span>
-          <span>Back to Dashboard</span>
-        </button>
+      <div className="max-w-5xl mx-auto">
 
         <h1 className="text-4xl font-bold text-white mb-8 text-center">Character Customization</h1>
         

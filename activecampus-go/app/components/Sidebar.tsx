@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from './AuthProvider';
 import Image from 'next/image';
 
@@ -9,10 +9,16 @@ export default function Sidebar() {
   const { signOut, user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams(); // <-- added
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Check if we're on the dashboard page
+  // Determine view from query param
+  const view = searchParams?.get('view') || 'map';
+
+  // Check if we're on the dashboard page and which dashboard view
   const isDashboard = pathname === '/dashboard';
+  const isMap = pathname === '/dashboard' && (view === 'map' || !searchParams?.get('view'));
+  const isLeaderboards = pathname === '/dashboard' && view === 'leaderboards';
 
   // Load sidebar state - DO NOT use localStorage in artifacts
   useEffect(() => {
@@ -66,12 +72,12 @@ export default function Sidebar() {
         <button
           onClick={() => router.push('/dashboard')}
           className={`w-full flex items-center rounded-xl transition-all duration-200 group ${
-            pathname === '/dashboard' 
-              ? 'bg-white/20 backdrop-blur-md border border-white/30 shadow-lg' 
+            isMap
+              ? 'bg-white/20 backdrop-blur-md border border-white/30 shadow-lg'
               : 'hover:bg-white/10 border border-transparent hover:border-white/20'
           } ${sidebarOpen ? 'gap-3 px-4 py-3.5 text-left' : 'justify-center p-3'}`}
         >
-          <div className={`${sidebarOpen ? 'p-1.5' : 'p-0'} rounded-lg ${pathname === '/dashboard' ? 'bg-rose-400/20' : 'group-hover:bg-white/10'} transition-colors flex items-center justify-center`}>
+          <div className={`${sidebarOpen ? 'p-1.5' : 'p-0'} rounded-lg ${isMap ? 'bg-rose-400/20' : 'group-hover:bg-white/10'} transition-colors flex items-center justify-center`}>
             <Image 
               src="/icons/map-icon.png" 
               alt="Map" 
@@ -84,14 +90,14 @@ export default function Sidebar() {
         </button>
 
         <button
-          onClick={() => router.push('/leaderboards')}
+          onClick={() => router.push('/dashboard?view=leaderboards')}
           className={`w-full flex items-center rounded-xl transition-all duration-200 group ${
-            pathname === '/leaderboards' 
-              ? 'bg-white/20 backdrop-blur-md border border-white/30 shadow-lg' 
+            isLeaderboards
+              ? 'bg-white/20 backdrop-blur-md border border-white/30 shadow-lg'
               : 'hover:bg-white/10 border border-transparent hover:border-white/20'
           } ${sidebarOpen ? 'gap-3 px-4 py-3.5 text-left' : 'justify-center p-3'}`}
         >
-          <div className={`${sidebarOpen ? 'p-1.5' : 'p-0'} rounded-lg ${pathname === '/leaderboards' ? 'bg-amber-400/20' : 'group-hover:bg-white/10'} transition-colors flex items-center justify-center`}>
+          <div className={`${sidebarOpen ? 'p-1.5' : 'p-0'} rounded-lg ${isLeaderboards ? 'bg-amber-400/20' : 'group-hover:bg-white/10'} transition-colors flex items-center justify-center`}>
             <Image 
               src="/icons/trophy-icon.png" 
               alt="Leaderboard" 
@@ -109,7 +115,7 @@ export default function Sidebar() {
               ? 'bg-white/20 backdrop-blur-md border border-white/30 shadow-lg' 
               : 'hover:bg-white/10 border border-transparent hover:border-white/20'
           } ${sidebarOpen ? 'gap-3 px-4 py-3.5 text-left' : 'justify-center p-3'}`}
-          onClick={() => router.push('/character_customization')}
+          onClick={() => router.push('/dashboard?view=profile')}
         >
           <div className={`${sidebarOpen ? 'p-1.5' : 'p-0'} rounded-lg ${pathname === '/character_customization' ? 'bg-violet-400/20' : 'group-hover:bg-white/10'} transition-colors flex items-center justify-center`}>
             <Image 
