@@ -25,7 +25,7 @@ export default function LeaderboardsPage() {
         const q = query(
           collection(db, 'users'),
           orderBy('campusEnergy', 'desc'),
-          limit(50)
+          limit(5)
         );
 
         const querySnapshot = await getDocs(q);
@@ -68,14 +68,6 @@ export default function LeaderboardsPage() {
     style={{ backgroundImage: `url(${pup_bg.src})`,
     backgroundSize: "cover", }}>
       <div className="max-w-4xl mx-auto">
-        {/* Add Back Button */}
-        <button
-          onClick={() => router.push('/dashboard')}
-          className="mb-4 flex items-center gap-2 text-white hover:text-[#ff8080] transition-colors"
-        >
-          <span className="text-2xl">←</span>
-          <span>Back to Dashboard</span>
-        </button>
 
         <h1 className="text-4xl font-bold text-white mb-8 text-center">
           Campus Energy Leaderboard 🏆
@@ -83,7 +75,7 @@ export default function LeaderboardsPage() {
 
         <div className="bg-white/10 backdrop-blur-sm rounded-lg border border-[#800000]/20 overflow-hidden">
           {/* Header */}
-          <div className="grid grid-cols-12 gap-2 p-4 border-b border-[#800000]/20 text-white font-semibold">
+          <div className="grid grid-cols-12 gap-2 p-5 border-b border-[#800000]/20 text-white font-semibold">
             <div className="col-span-2 text-center">Rank</div>
             <div className="col-span-5">Name</div>
             <div className="col-span-3 text-right">CE</div>
@@ -94,7 +86,7 @@ export default function LeaderboardsPage() {
           {leaderboard.map((entry) => (
             <div
               key={entry.id}
-              className="grid grid-cols-12 gap-2 p-4 border-b border-[#800000]/20 text-white hover:bg-white/5 transition-colors"
+              className="grid grid-cols-12 gap-2 p-5 border-b border-[#800000]/20 text-white hover:bg-white/5 transition-colors"
             >
               {/* Rank with medal for top 3 */}
               <div className="col-span-2 text-center font-semibold">

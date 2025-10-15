@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../components/AuthProvider';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import Image from 'next/image';
 
 interface Outfit {
   id: string;
@@ -33,16 +34,15 @@ const outfits: Outfit[] = [
     name: 'Basic Male',
     price: 100,
     image: baseMale.src,
-    owned: true // Default outfit
+    owned: true
   },
   {
     id: 'female',
     name: 'Basic Female',
     price: 100,
     image: baseFemale.src,
-    owned: true  // Changed to true
+    owned: true
   },
-
   {
     id: 'pigtails',
     name: 'Schoolgirl',
@@ -71,7 +71,6 @@ const outfits: Outfit[] = [
     image: femalePUP.src,
     owned: false
   }
-  // Add more outfits as needed
 ];
 
 export default function CharacterCustomization() {
@@ -175,10 +174,13 @@ export default function CharacterCustomization() {
 
   return (
     <div className="min-h-screen p-8" 
-      style={{ backgroundImage: `url(${pup_bg.src})`,
-      backgroundSize: "cover", }}>
+      style={{ 
+        backgroundImage: `url(${pup_bg.src})`,
+        backgroundSize: "cover",
+        imageRendering: 'pixelated'
+      }}>
       <div className="max-w-6xl mx-auto">
-        {/* Add Back Button */}
+        {/* Back Button */}
         <button
           onClick={() => router.push('/dashboard')}
           className="mb-4 flex items-center gap-2 text-white hover:text-[#ff8080] transition-colors"
@@ -193,11 +195,14 @@ export default function CharacterCustomization() {
           {/* Character Preview */}
           <div className="col-span-1 bg-white/5 rounded-lg p-6 backdrop-blur-sm border border-[#800000]/20">
             <h2 className="text-2xl font-semibold text-white mb-4">Your Character</h2>
-            <div className="aspect-square bg-gray-800/50 rounded-lg flex items-center justify-center">
-              <img 
-                src={outfits.find(o => o.id === selectedOutfit)?.image} 
+            <div className="aspect-square bg-gray-800/50 rounded-lg flex items-center justify-center p-4">
+              <Image
+                src={outfits.find(o => o.id === selectedOutfit)?.image || baseMale.src}
                 alt="Character Preview"
-                className="w-full h-full object-contain"
+                width={300}
+                height={300}
+                className="pixelated w-full h-full object-contain"
+                unoptimized
               />
             </div>
             <div className="mt-4 text-center text-white">
@@ -227,11 +232,16 @@ export default function CharacterCustomization() {
                         `}
                         onClick={() => character.ownedOutfits.includes(outfit.id) && equipOutfit(outfit.id)}
                       >
-                        <img 
-                          src={outfit.image} 
-                          alt={outfit.name}
-                          className="w-full h-32 object-contain mb-2"
-                        />
+                        <div className="w-full h-32 flex items-center justify-center mb-2">
+                          <Image
+                            src={outfit.image}
+                            alt={outfit.name}
+                            width={128}
+                            height={128}
+                            className="pixelated object-contain"
+                            unoptimized
+                          />
+                        </div>
                         <h3 className="text-white font-medium">{outfit.name}</h3>
                         {!character.ownedOutfits.includes(outfit.id) ? (
                           <button
