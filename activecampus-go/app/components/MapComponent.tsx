@@ -431,31 +431,37 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
 
       setUserLocation(demoLocation);
 
-      // Create or update marker
-      if (userMarkerRef.current) {
-        userMarkerRef.current.setPosition(demoLocation);
-        userMarkerRef.current.setIcon({
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: '#FFA500',
-          fillOpacity: 1,
-          strokeColor: '#FFFFFF',
-          strokeWeight: 3,
-        });
-      } else {
-        const marker = new google.maps.Marker({
-          position: demoLocation,
-          map: map,
-          title: 'Demo Location (Simulated)',
-          icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 8,
-            fillColor: '#FFA500',
-            fillOpacity: 1,
-            strokeColor: '#FFFFFF',
-            strokeWeight: 3,
-          },
-        });
+    // Create or update marker
+    if (userMarkerRef.current) {
+      userMarkerRef.current.setPosition(demoLocation);
+      // Get user's avatar to determine which head icon to use
+      const avatarBase = userProfile?.avatar?.base || 'boy';
+      const headIconPath = avatarBase === 'girl' 
+        ? '/icons/head_icons/base female.png' 
+        : '/icons/head_icons/base male.png';
+      
+      userMarkerRef.current.setIcon({
+        url: headIconPath,
+        scaledSize: new google.maps.Size(40, 40),
+        anchor: new google.maps.Point(20, 20),
+      });
+    } else {
+      // Get user's avatar to determine which head icon to use
+      const avatarBase = userProfile?.avatar?.base || 'boy';
+      const headIconPath = avatarBase === 'girl' 
+        ? '/icons/head_icons/base female.png' 
+        : '/icons/head_icons/base male.png';
+      
+      const marker = new google.maps.Marker({
+        position: demoLocation,
+        map: map,
+        title: 'Demo Location (Simulated)',
+        icon: {
+          url: headIconPath,
+          scaledSize: new google.maps.Size(40, 40),
+          anchor: new google.maps.Point(20, 20),
+        },
+      });
 
         const infoWindow = new google.maps.InfoWindow({
           content: `<div>
@@ -543,17 +549,20 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
       if (userMarkerRef.current) {
         userMarkerRef.current.setPosition(userLatLng);
       } else {
+        // Get user's avatar to determine which head icon to use
+        const avatarBase = userProfile?.avatar?.base || 'boy';
+        const headIconPath = avatarBase === 'girl' 
+          ? '/icons/head_icons/base female.png' 
+          : '/icons/head_icons/base male.png';
+        
         const marker = new google.maps.Marker({
           position: userLatLng,
           map: map,
           title: 'Your Location',
           icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 8,
-            fillColor: '#4285F4',
-            fillOpacity: 1,
-            strokeColor: '#FFFFFF',
-            strokeWeight: 3,
+            url: headIconPath,
+            scaledSize: new google.maps.Size(40, 40),
+            anchor: new google.maps.Point(20, 20),
           },
         });
 
@@ -796,17 +805,20 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
         if (userMarkerRef.current) {
           userMarkerRef.current.setPosition(userLatLng);
         } else {
+          // Get user's avatar to determine which head icon to use
+          const avatarBase = userProfile?.avatar?.base || 'boy';
+          const headIconPath = avatarBase === 'girl' 
+            ? '/icons/head_icons/base female.png' 
+            : '/icons/head_icons/base male.png';
+          
           const marker = new google.maps.Marker({
             position: userLatLng,
             map: map,
             title: 'Your Location',
             icon: {
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: 8,
-              fillColor: '#4285F4',
-              fillOpacity: 1,
-              strokeColor: '#FFFFFF',
-              strokeWeight: 3,
+              url: headIconPath,
+              scaledSize: new google.maps.Size(40, 40),
+              anchor: new google.maps.Point(20, 20),
             },
           });
           userMarkerRef.current = marker;
@@ -872,26 +884,32 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
     // Create or update marker
     if (userMarkerRef.current) {
       userMarkerRef.current.setPosition(demoLocation);
+      // Get user's avatar to determine which head icon to use
+      const avatarBase = userProfile?.avatar?.base || 'boy';
+      const headIconPath = avatarBase === 'girl' 
+        ? '/icons/head_icons/base female.png' 
+        : '/icons/head_icons/base male.png';
+      
       userMarkerRef.current.setIcon({
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 8,
-        fillColor: '#FFA500', // Orange color for demo
-        fillOpacity: 1,
-        strokeColor: '#FFFFFF',
-        strokeWeight: 3,
+        url: headIconPath,
+        scaledSize: new google.maps.Size(40, 40),
+        anchor: new google.maps.Point(20, 20),
       });
     } else {
+      // Get user's avatar to determine which head icon to use
+      const avatarBase = userProfile?.avatar?.base || 'boy';
+      const headIconPath = avatarBase === 'girl' 
+        ? '/icons/head_icons/base female.png' 
+        : '/icons/head_icons/base male.png';
+      
       const marker = new google.maps.Marker({
         position: demoLocation,
         map: map,
         title: 'Demo Location (Simulated)',
         icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: '#FFA500', // Orange color for demo
-          fillOpacity: 1,
-          strokeColor: '#FFFFFF',
-          strokeWeight: 3,
+          url: headIconPath,
+          scaledSize: new google.maps.Size(40, 40),
+          anchor: new google.maps.Point(20, 20),
         },
       });
 
