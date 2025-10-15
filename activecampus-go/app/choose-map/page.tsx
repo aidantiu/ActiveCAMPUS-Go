@@ -21,7 +21,7 @@ export default function ChooseMapPage() {
     return () => clearTimeout(initTimer);
   }, []);
 
-  // Redirect based on authentication and campus-self completion status
+  // Redirect based on authentication status
   useEffect(() => {
     if (!isReady) return; // Don't check until ready
     
@@ -29,12 +29,11 @@ export default function ChooseMapPage() {
       loading, 
       hasUser: !!user, 
       hasProfile: !!userProfile,
-      campusSelfCompleted: userProfile?.campusSelfCompleted,
       isReady 
     });
     
     if (!loading && !user) {
-      console.log('ChooseMap: No user, redirecting to login');
+      console.log('ChooseMap: No user, redirecting to intro');
       router.push('/intro');
     }
   }, [user, userProfile, loading, isReady, router]);
@@ -57,8 +56,8 @@ export default function ChooseMapPage() {
     );
   }
 
-  // Show redirecting message if not authenticated or campus-self not completed
-  if (!user || (user && userProfile && !userProfile.campusSelfCompleted)) {
+  // Show redirecting message if not authenticated
+  if (!user) {
     return (
       <div 
         className="min-h-screen bg-cover bg-center bg-no-repeat flex items-center justify-center relative"
@@ -104,7 +103,7 @@ export default function ChooseMapPage() {
 
             {/* PUP Sta Mesa Campus - Available */}
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push('/character_customization')}
               className="group relative bg-white/15 backdrop-blur-lg border border-white/30 rounded-3xl shadow-2xl hover:shadow-purple-500/30 transition-all duration-300 transform hover:scale-105 overflow-hidden h-full flex flex-col hover:bg-white/20"
             >
               {/* Hover Gradient Overlay - Enhanced Maroon */}

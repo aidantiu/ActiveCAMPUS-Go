@@ -251,6 +251,15 @@ export default function CharacterCustomization() {
           </div>
         </div>
 
+        {/* Continue Button */}
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={() => router.push('/intro')}
+            className="px-8 py-4 bg-[#800000] hover:bg-[#600000] text-white text-lg font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+          >
+            Continue to Adventure →
+          </button>
+        </div>
       </div>
     </div>
   );
