@@ -178,7 +178,7 @@ export const createChallengeMarkers = (
   google: typeof window.google,
   map: google.maps.Map,
   challenges: Challenge[] = DEFAULT_CHALLENGES,
-  icons?: Record<string, google.maps.Symbol>
+  icons?: Record<string, google.maps.Icon>
 ) => {
   const markers: Record<string, google.maps.Marker> = {};
 
