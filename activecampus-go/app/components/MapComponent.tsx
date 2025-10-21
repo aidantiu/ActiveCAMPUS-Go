@@ -287,7 +287,8 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
         // --- Campus Challenges ---
         // Build icons and create markers using helpers in lib/campusChallenges
         challengeIconRef.current = buildChallengeIcons(google);
-        const markers = createChallengeMarkers(google, mapInstance, DEFAULT_CHALLENGES, challengeIconRef.current as any);
+        console.log('ELTON DEBUGGING=== ', challengeIconRef.current);
+        const markers = createChallengeMarkers(google, mapInstance, DEFAULT_CHALLENGES, challengeIconRef.current);
 
         // Wire up per-marker click handling that uses runtime userLocation and claimedChallenges state
         // Use a single shared InfoWindow to avoid multiple overlapping windows causing display issues
