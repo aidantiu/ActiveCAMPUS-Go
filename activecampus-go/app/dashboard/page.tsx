@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useAuth } from '../components/AuthProvider';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getUserRank } from '@/lib/firestore';
@@ -9,7 +9,7 @@ import MapComponent from '../components/MapComponent';
 import LeaderboardsPage from '../leaderboards/page'; // local import of the page component
 import ProfilePage from '../character_customization/page';
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { user, userProfile, loading, signOut, refreshUserProfile } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -221,5 +221,13 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="text-center text-white p-8">Loading dashboard...</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }
