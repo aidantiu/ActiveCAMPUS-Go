@@ -65,7 +65,7 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
   const userMarkerRef = useRef<google.maps.Marker | null>(null);
   const accuracyCircleRef = useRef<google.maps.Circle | null>(null);
   const watchIdRef = useRef<number | null>(null);
-  const challengeIconRef = useRef<Record<string, google.maps.Symbol> | null>(null);
+  const challengeIconRef = useRef<Record<string, google.maps.Icon> | null>(null);
   const firstPositionHandledRef = useRef(false);
   const [logs, setLogs] = useState<string[]>([]);
 
