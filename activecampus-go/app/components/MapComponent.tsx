@@ -286,7 +286,7 @@ export default function MapComponent({ onLocationUpdate, onChallengeComplete }: 
 
         // --- Campus Challenges ---
         // Build icons and create markers using helpers in lib/campusChallenges
-        challengeIconRef.current = buildChallengeIcons(google);
+        challengeIconRef.current = buildChallengeIcons(google) as unknown as Record<string, google.maps.Icon>;
         console.log('ELTON DEBUGGING=== ', challengeIconRef.current);
         const markers = createChallengeMarkers(google, mapInstance, DEFAULT_CHALLENGES, challengeIconRef.current);
 
